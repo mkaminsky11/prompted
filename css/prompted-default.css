@@ -1,0 +1,9 @@
+.prompted-s-default{
+  background-color: rgb(13, 13, 13);
+  color: white;
+  font-family: "Arial";
+}
+
+.prompted-s-default .prompted-prompt{
+  margin-right: 5px;
+}

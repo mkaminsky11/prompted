@@ -34,7 +34,16 @@ function prompted(elems, options){
 */
 
 function _prompted(elem, options){
+  this.elem = elem;
+  this.prompt = "$";
+
+  //prompt
+  if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
+
   var main = document.createElement("DIV");
+  main.className = "prompted prompted-s-default";
+  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+this.prompt+"</span><input type=\"text\" class=\"prompted-input\"></div>";
+  elem.appendChild(main);
 };
 
 /*
@@ -52,4 +61,11 @@ _prompted_helper.isElement = function(o){
     typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
     o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
   );
+};
+
+_prompted_helper.exists = function(test){
+  if((typeof test) === (typeof undefined) || test === undefined || (typeof test) === undefined || (typeof test) === "undefined"){
+    return false;
+  }
+  return true;
 };
