@@ -2,8 +2,17 @@
   background-color: rgb(13, 13, 13);
   color: white;
   font-family: "Arial";
+
+  font-size: 13px;
 }
 
 .prompted-s-default .prompted-prompt{
   margin-right: 5px;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.prompted-input{
+  font-size: 13px;
+  color: white;
 }

@@ -7,3 +7,26 @@
 
   padding: 10px;
 }
+
+.prompted-row{
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  /*
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  */
+}
+
+.propted-prompt{
+
+}
+
+.prompted-input{
+  outline: none !important;
+  background-color: transparent;
+  border: none;
+  flex: 1;
+}
