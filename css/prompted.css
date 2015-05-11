@@ -8,6 +8,13 @@
   padding: 10px;
 }
 
+.prompted pre{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .prompted-row{
   display: -webkit-box;
   display: -webkit-flex;
@@ -18,10 +25,6 @@
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
   */
-}
-
-.propted-prompt{
-
 }
 
 .prompted-input{

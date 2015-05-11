@@ -1,9 +1,19 @@
+@font-face{
+  font-family: "Inconsolata";
+  src: url("Inconsolata.otf") format("opentype");
+}
+
 .prompted-s-default{
   background-color: rgb(13, 13, 13);
   color: white;
-  font-family: "Arial";
+  font-family: "Inconsolata" !important;
 
   font-size: 13px;
+}
+
+.prompted-s-default pre{
+  font-family: "Inconsolata" !important;
+  font-size: 14px !important;
 }
 
 .prompted-s-default .prompted-prompt{
@@ -12,7 +22,20 @@
   font-size: 15px;
 }
 
-.prompted-input{
+.prompted-s-default .prompted-prompt::after{
+  content: "#";
+}
+
+.prompted-s-default .prompted-input{
   font-size: 13px;
   color: white;
+}
+
+.prompted-s-default .prompted-accent-2{
+  color: #82A1BD;
+  margin-left: 5px;
+}
+
+.prompted-s-default .prompted-accent-1{
+  color: #AAB167;
 }

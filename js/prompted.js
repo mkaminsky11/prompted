@@ -39,22 +39,24 @@ function prompted(elems, options){
 */
 
 function _prompted(elem, options){
-  this.prompt = "$";
+  this.prompt = "root@you.com";
   this.beforeInput = function(e){};
   this.afterInput = function(e){};
   this.disable = false; //disable default output?
   this.data = [];
+  this.path = "";
 
   //prompt
   if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
+  if(_prompted_helper.exists(options.path)){this.path = options.path}
   if(_prompted_helper.exists(options.beforeInput)){this.beforeInput = options.beforeInput}
   if(_prompted_helper.exists(options.afterInput)){this.afterInput = options.afterInput}
   if(_prompted_helper.exists(options.disable)){this.disable = options.disable}
-  if(_prompted_helper.exists(options.data)){this.data = options.data}
+  if(_prompted_helper.exists(options.data)){this.readTree(options.data,"")}
 
   var main = document.createElement("DIV");
   main.className = "prompted prompted-s-default";
-  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+this.prompt+"</span><input type=\"text\" class=\"prompted-input\"></div>";
+  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input type=\"text\" class=\"prompted-input\"></div>";
   elem.appendChild(main);
 
   this.elem = main;
@@ -68,24 +70,89 @@ function _prompted(elem, options){
         if(this.disable === false){
           var val = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0].value;
           _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0].value = "";
-          _prompted_helper.toArray(main.getElementsByClassName("prompted-input")).reverse()[0].focus();
+          _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0].focus();
 
           var newNode = document.createElement("DIV");
           newNode.className = "prompted-row";
-          newNode.innerHTML = "<span class=\"prompted-prompt\">"+this.prompt+"</span><input type=\"text\" class=\"prompted-input\" readonly value=\""+val+"\">";
+          newNode.innerHTML = "<span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>"+"<span class=\"prompted-accent-2\">" + this.path + "</span>"+"</span><input type=\"text\" class=\"prompted-input\" readonly value=\""+val+"\">";
 
-          //insert new row after the last row
+          //insert new row before the last row
           var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
-
           this.elem.insertBefore(newNode, last_row);
 
-          //output should be inserted before newNode
+          //output should be inserted before the last row
 
+          var command = val.split(" ")[0];
+          if(command === "cd"){
+            var res = this.cd(val.replace("cd","").trim());
+            if(res !== null){
+              this.inline("cd:" + res);
+            }
+          }
 
+          _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-prompt")).reverse()[0].innerHTML = "<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>";
         }
         this.afterInput(val);
     }
   }.bind(this), false);
+}
+
+_prompted.prototype.inline = function(text){
+  //display inline text!
+  var newNode = document.createElement("div");
+  newNode.className = "prompted-row";
+  newNode.innerHTML = "<pre>" + text + "</pre>";
+  var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
+  this.elem.insertBefore(newNode, last_row);
+};
+
+_prompted.prototype.cd = function(arg){
+  //first, resolve path
+
+  var path = this.path;
+  if(arg[0] === "/"){path="";arg=arg.replace("/","")} //remove leading /
+  if(arg[0] === "~"){path="";arg=arg.replace("~","")}
+  arg = arg.split("/");
+  for(var i = 0; i < arg.length; i++){
+    if(arg[i] !== "." && arg[i] !== ""){
+      //not nothing
+      if(arg[i] === ".."){
+        if(path === ""){
+          //nothing...
+        }
+        else{
+          //remove the last one
+          path = path.split("/").reverse().slice(1).reverse().join("/");
+        }
+      }
+      else{
+        //just something normal
+        if(this.canCd(path + "/" + arg[i])){
+          path = path + "/" + arg[i];
+        }
+        else{
+          return "This folder does not exist";
+        }
+      }
+    }
+  }
+
+  //if nothing happens...
+  if(path[0] === "/"){path=path.replace("/","")}
+  this.path = path;
+  return null;
+};
+
+_prompted.prototype.canCd = function(path){
+  for(var i = 0; i < this.data.length; i++){
+    if(this.data[i].path === path){
+      if(this.data[i].folder === true){
+        return true;
+      }
+      return false;
+    }
+  }
+  return false;
 }
 
 _prompted.prototype.readTree = function(tree, path){
@@ -101,7 +168,30 @@ _prompted.prototype.readTree = function(tree, path){
     -- if folder, another tree (opt)
     */
 
-    
+    var to_push = {};
+    to_push.path = tree[i].path;
+    if(tree[i].path.indexOf("/") === -1){
+      to_push.name = tree[i].path;
+      to_push.parent = path;
+      to_push.path = path + "/" + to_push.path
+    }
+    else{
+      to_push.name = tree[i].path.split("/").reverse()[0];
+      to_push.parent = path + "/" + tree[i].path.split("/").reverse().slice(1).reverse().join("/");
+    }
+
+    to_push.folder = tree[i].folder;
+    if(to_push.folder === false){
+      to_push.contents = tree[i].contents;
+    }
+    else if(_prompted_helper.exists(tree[i].contents)){
+      //a folder with contents
+      this.readTree(tree[i].contents, tree[i].path);
+    }
+
+    if(to_push.parent[0] === "/"){to_push.parent = to_push.parent.replace("/","")}
+
+    this.data.push(to_push);
   }
 };
 

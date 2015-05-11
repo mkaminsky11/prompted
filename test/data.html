@@ -29,8 +29,28 @@
     <script src="../js/jquery.js"></script>
     <script src="../js/prompted.js"></script>
     <script>
-      var terminal = prompted(document.getElementById("main"),{
 
+      var data = [
+        {
+          path: "index.html",
+          folder: false,
+          contents: "hi all you people"
+        },
+        {
+          path: "test",
+          folder: true,
+          contents: [
+            {
+              path: "smeg.html",
+              folder: false,
+              contents: "hi, again"
+            }
+          ]
+        }
+      ];
+
+      var terminal = prompted(document.getElementById("main"),{
+        data:data
       })[0];
     </script>
 
