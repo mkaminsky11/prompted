@@ -31,11 +31,19 @@
   color: white;
 }
 
+.prompted-s-default .prompted-prompt .prompted-accent-2{
+  margin-left: 5px;
+}
+
 .prompted-s-default .prompted-accent-2{
   color: #82A1BD;
-  margin-left: 5px;
 }
 
 .prompted-s-default .prompted-accent-1{
   color: #AAB167;
+}
+
+.prompted-s-default .prompted-accent-3{
+  color: #AF94B9;
+  font-weight: bold;
 }
