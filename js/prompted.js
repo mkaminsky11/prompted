@@ -1,7 +1,8 @@
-//TODO: escape (allow for "<" and ">")
 //TODO: autocomplete (uh-oh)
-//TODO: cat
 //TODO: docs!
+//TODO: help
+//TODO: add own functions
+//TODO: echo
 
 /*
 * JUST FOR INIT
@@ -44,7 +45,7 @@ function prompted(elems, options){
 */
 
 function _prompted(elem, options){
-  this.prompt = "root@you.com";
+  this.prompt = "root@localhost.com";
   this.beforeInput = function(e){};
   this.afterInput = function(e){};
   this.disable = false; //disable default output?
@@ -87,13 +88,23 @@ function _prompted(elem, options){
           this.elem.insertBefore(newNode, last_row);
 
           //output should be inserted before the last row
-
-          var command = val.split(" ")[0];
-          if(command === "cd"){
-            this.cd(val.replace("cd","").trim());
-          }
-          else if(command === "ls"){
-            this.ls(val.replace("ls","").trim());
+          if(val.trim() !== ""){
+            var command = val.split(" ")[0];
+            if(command === "cd"){
+              this.cd(val.replace("cd","").trim());
+            }
+            else if(command === "ls"){
+              this.ls(val.replace("ls","").trim());
+            }
+            else if(command === "cat"){
+              this.cat(val.replace("cat","").trim());
+            }
+            else if(command === "clear"){
+              this.clear();
+            }
+            else{
+              this.print("This command does not exist")
+            }
           }
 
           _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-prompt")).reverse()[0].innerHTML = "<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>";
@@ -103,16 +114,17 @@ function _prompted(elem, options){
   }.bind(this), false);
 }
 
-_prompted.prototype.findFiles = function(path){
-  //might have *
-  //replace all * with (.*?), then make regex
+_prompted.prototype.clear = function(){
+  //remove all rows but the last
+  var rows = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row"));
+  for(var i = 0; i < (rows.length - 1); i++){
+    rows[i].parentNode.removeChild(rows[i]);
+  }
+}
 
+_prompted.prototype.findFiles = function(path){
   _path = path.split("/");
 
-  //var r = new RegExp(path.split("*").join("(.*?)"));
-
-
-  //return all data things in which the parents match
   var ret = [];
   for(var i = 0; i < this.data.length; i++){
     var path = this.data[i].path.split("/");
@@ -134,6 +146,40 @@ _prompted.prototype.findFiles = function(path){
   return ret;
 };
 
+_prompted.prototype.cat = function(arg){
+  var files = [];
+  if(arg !== ""){
+    var r_path = this.resolve(this.path, arg);
+    files = this.findFiles(r_path);
+    if(files.length > 0){
+      var ok = false;
+      var text = "";
+      for(var i = 0; i < files.length; i++){
+        if(files[i].folder === false){
+          ok=true;
+          text += ("\n" + _prompted_helper.escape(files[i].contents));
+        }
+      }
+
+      if(ok === true){
+        //um...ok
+        //now sort by "name"
+        this.print(text);
+      }
+      else{
+        this.print("cat: no files found");
+      }
+    }
+    else{
+      this.print("cat: no files found");
+    }
+  }
+  else{
+    //uh-oh
+    this.print("cat: no file specified");
+  }
+}
+
 _prompted.prototype.ls = function(arg){
   var files = [];
   if(arg === ""){
@@ -147,15 +193,22 @@ _prompted.prototype.ls = function(arg){
   }
   else{
     //something else...resolve to this.path
-    r_path = this.resolve(this.path, arg);
-    if(r_path === "/"){
-      files = this.findFiles("/*");
+    //and make sure that it exists
+    var r_path = this.resolve(this.path, arg);
+    if(this.canCd(r_path)){
+      if(r_path === "/"){
+        files = this.findFiles("/*");
+      }
+      else{
+        files = this.findFiles(r_path + "/*");
+      }
     }
     else{
-      files = this.findFiles(r_path + "/*");
+      this.print("ls: this folder was not found");
     }
   }
 
+  files = files.sort(_prompted_helper.nameSort);
   html = "<ul class=\"flex-list\">";
   for(var i = 0; i < files.length; i++){
     if(files[i].folder === true){
@@ -217,7 +270,7 @@ _prompted.prototype.cd = function(arg){
   cd = arg.split("/");
   if(cd[0] === ""){cd[0]="/"}
   if(arg[0] === "~"){cd[0]="~"}
-  for(var i = 1; i < cd.length; i++){
+  for(var i = 1; i <= cd.length; i++){
     var r_path = this.resolve(this.path, cd.slice(0,i).join("/"));
     if(this.canCd(r_path) === false){
       this.print("cd: this folder was not found");
@@ -299,7 +352,7 @@ _prompted_helper.exists = function(test){
 };
 
 _prompted_helper.escape = function(text){
-  return text.split("<").join("&lt;").split(">").join("&gt;");
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 };
 
 _prompted_helper.toArray = function(nl){
@@ -317,3 +370,9 @@ _prompted_helper.ext = function(name){
     return name.split(".").reverse()[0];
   }
 };
+
+_prompted_helper.nameSort = function(a,b){
+    if(a.name < b.name) return -1;
+    if(a.name > b.name) return 1;
+    return 0;
+}
