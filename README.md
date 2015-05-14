@@ -8,7 +8,6 @@ First import the basic CSS and a theme
 <link rel="stylesheet" href="../css/prompted.css">
 <link rel="stylesheet" href="../css/prompted-default.css">
 ```
-
 And create the element(s) you want to use
 ```html
 <div id="main">
