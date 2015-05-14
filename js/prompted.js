@@ -49,7 +49,7 @@ function prompted(elems, options){
 */
 
 function _prompted(elem, options){
-  this.prompt = "root@localhost.com";
+  this.prompt = "root@localhost";
   this.beforeInput = function(e){};
   this.afterInput = function(e){};
   this.disable = false; //disable default output?

@@ -45,6 +45,7 @@ All of these can be changed simply by doing something like:
 ```javascript
 terminal.prompt = "$";
 ```
+Except for `_prompted.data`. Do **not** edit this manually! Use the built-in functions to add, move, and remove files.
 
 ## Data
 No terminal would be complete without some file structure. Fortunately, you can simulate this with an array of objects. The way to do this is pretty flexible.
