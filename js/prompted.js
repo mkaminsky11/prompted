@@ -178,6 +178,8 @@ _prompted.prototype.touch = function(arg){
     }
   }
 };
+_prompted.prototype.touch.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
 _prompted.prototype.mkdir = function(arg){
   arg = arg.split(" ");
@@ -201,14 +203,23 @@ _prompted.prototype.mkdir = function(arg){
     }
   }
 };
+_prompted.prototype.mkdir.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.pwd = function(){
   this.print(this.path);
 };
+_prompted.prototype.pwd.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.echo = function(text){
   this.print(_prompted_helper.escape(text));
 };
+_prompted.prototype.echo.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.clear = function(){
   //remove all rows but the last
@@ -217,6 +228,9 @@ _prompted.prototype.clear = function(){
     rows[i].parentNode.removeChild(rows[i]);
   }
 }
+_prompted.prototype.clear.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.findAll = function(path){
   _path = path.split("/");
@@ -293,6 +307,9 @@ _prompted.prototype.cat = function(arg){
     this.print("cat: no file specified");
   }
 }
+_prompted.prototype.cat.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.ls = function(_path){
     var files = []
@@ -349,6 +366,9 @@ _prompted.prototype.ls = function(_path){
 	    this.insert(html);
 	}
 };
+_prompted.prototype.ls.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.print = function(text){
   //display inline text!
@@ -403,6 +423,9 @@ _prompted.prototype.cd = function(arg){
   }
   this.path = this.resolve(this.path, arg);
 };
+_prompted.prototype.cd.help = (function () {/*  
+*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
 
 _prompted.prototype.canCd = function(path){
   if(path === "/"){return true}
