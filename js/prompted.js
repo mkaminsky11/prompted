@@ -4,7 +4,6 @@
 //TODO: add own functions
 //TODO: find (-iname, etc) <-- tags are iffy
 //TODO: df ?
-//TODO: rm <--remove everything that starts with the path
 //TODO: mv <--change everything that starts with the path
 //TODO: wget
 //TODO: quotes + dquote? <-- iffy
@@ -68,7 +67,7 @@ function _prompted(elem, options){
 
   var main = document.createElement("DIV");
   main.className = "prompted prompted-s-default";
-  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input type=\"text\" class=\"prompted-input\"></div>";
+  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input spellcheck=\"false\" type=\"text\" class=\"prompted-input\"></div>";
   elem.appendChild(main);
 
   this.elem = main;
@@ -86,7 +85,7 @@ function _prompted(elem, options){
 
           var newNode = document.createElement("DIV");
           newNode.className = "prompted-row";
-          newNode.innerHTML = "<span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>"+"<span class=\"prompted-accent-2\">" + this.path + "</span>"+"</span><input type=\"text\" class=\"prompted-input\" readonly value=\""+val+"\">";
+          newNode.innerHTML = "<span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>"+"<span class=\"prompted-accent-2\">" + this.path + "</span>"+"</span><input type=\"text\" class=\"prompted-input\" readonly spellcheck=\"false\" value=\""+val+"\">";
 
           //insert new row before the last row
           var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
@@ -144,11 +143,12 @@ _prompted.prototype.rm = function(arg){
 		arg = arg.split(" ");
 		for(var i = 0; i < arg.length; i++){
 			var path = this.resolve(this.path, arg[i]);
-			var possible = this.findFolders(path);
+			var possible = this.findAll(path);
 			for(var k = 0; k < possible.length; k++){
 				for(var j = 0; j < this.data.length; j++){
 					if(_prompted_helper.startsWith(possible[k].path, this.data[j].path)){
-						this.data = this.data.splice(j, 1);
+						this.data.splice(j, 1);
+						j--;
 					}
 				}
 			}
@@ -312,16 +312,21 @@ _prompted.prototype.ls = function(_path){
       for(var i = 0; i < _path.length; i++){
         var arg = this.resolve(this.path,_path[i]);
         var possible = this.findFolders(arg);
-	for(var j = 0; j < possible.length; j++){
-		if(possible[j].path === "/"){
-			var files_found = this.findFiles("/*");
-			files = files.concat(files_found);
+	if(possible.length > 0){
+		for(var j = 0; j < possible.length; j++){
+			if(possible[j].path === "/"){
+				var files_found = this.findFiles("/*");
+				files = files.concat(files_found);
+			}
+			else{
+				var files_found = this.findFiles(possible[j].path + "/*"); 
+				
+				files = files.concat(files_found);
+			}
 		}
-		else{
-			var files_found = this.findFiles(possible[j].path + "/*"); 
-			
-			files = files.concat(files_found);
-		}
+	}
+	else{
+		this.print("ls: this folder was not found");
 	}
       }
     }
@@ -343,9 +348,6 @@ _prompted.prototype.ls = function(_path){
 	
 	    html += "</ul>";
 	    this.insert(html);
-	}
-	else{
-		this.print("ls: this folder was not found");
 	}
 };
 
