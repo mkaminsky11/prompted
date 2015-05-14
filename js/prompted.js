@@ -199,7 +199,7 @@ _prompted.prototype.clear = function(){
   }
 }
 
-_prompted.prototype.findFiles = function(path){
+_prompted.prototype.findAll = function(path){
   _path = path.split("/");
 
   var ret = [];
@@ -224,10 +224,21 @@ _prompted.prototype.findFiles = function(path){
 };
 
 _prompted.prototype.findFolders = function(path){
-  var files = this.findFiles(path);
+  var files = this.findAll(path);
   var ret = [];
   for(var i = 0; i < files.length; i++){
     if(files[i].folder === true){
+      ret.push(files[i]);
+    }
+  }
+  return ret;
+}
+
+_prompted.prototype.findFiles = function(path){
+  var files = this.findAll(path);
+  var ret = [];
+  for(var i = 0; i < files.length; i++){
+    if(files[i].folder === false){
       ret.push(files[i]);
     }
   }
@@ -240,16 +251,12 @@ _prompted.prototype.cat = function(arg){
     var r_path = this.resolve(this.path, arg);
     files = this.findFiles(r_path);
     if(files.length > 0){
-      var ok = false;
       var text = "";
       for(var i = 0; i < files.length; i++){
-        if(files[i].folder === false){
-          ok=true;
-          text += ("\n" + _prompted_helper.escape(files[i].contents));
-        }
+        text += ("\n" + _prompted_helper.escape(files[i].contents));
       }
 
-      if(ok === true){
+      if(files.length > 0){
         //um...ok
         //now sort by "name"
         this.print(text);
@@ -278,10 +285,10 @@ _prompted.prototype.ls = function(_path){
     var files = []
     if(_path === ""){
       if(this.path === "/"){
-        files = this.findFiles("/*");
+        files = this.findAll("/*");
       }
       else{
-        files = this.findFiles(this.path + "/*");
+        files = this.findAll(this.path + "/*");
       }
     }
     else{
@@ -289,15 +296,13 @@ _prompted.prototype.ls = function(_path){
       //multiple things to search
       //for each of them, also have to evaluate *
       for(var i = 0; i < _path.length; i++){
-        var arg = _path[i];
-        if(arg === "*"){
-
-        }
-        else{
-
-        }
+        var arg = this.resolve(this.path,_path[i]);
+        //get all folders that match
+        //for each, find all files within that
+          //appdn to files
       }
     }
+    //if anything in files, print it!
 
 
     /*
