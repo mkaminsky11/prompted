@@ -275,12 +275,6 @@ _prompted.prototype.cat = function(arg){
   }
 }
 
-/*
-TODO: work on this
-allow for *
-allow for multiple folders, e.g. "ls test this_folder"
-*/
-
 _prompted.prototype.ls = function(_path){
     var files = []
     if(_path === ""){
@@ -297,35 +291,21 @@ _prompted.prototype.ls = function(_path){
       //for each of them, also have to evaluate *
       for(var i = 0; i < _path.length; i++){
         var arg = this.resolve(this.path,_path[i]);
-        //get all folders that match
-        //for each, find all files within that
-          //appdn to files
+        var possible = this.findFolders(arg);
+	for(var j = 0; j < possible.length; j++){
+		if(possible[j].path === "/"){
+			var files_found = this.findFiles("/*");
+			files = files.concat(files_found);
+		}
+		else{
+			var files_found = this.findFiles(possible[j].path + "/*"); 
+			
+			files = files.concat(files_found);
+		}
+	}
       }
     }
     //if anything in files, print it!
-
-
-    /*
-        var _r_path = this.resolve(this.path, arg);
-        var r_path = this.findFolders(_r_path);
-        console.log(_r_path);
-        if(r_path.length > 0){
-          if(_r_path === "/"){
-            files = files.concat(this.findFiles("/*"));
-          }
-          else{
-            if(_r_path.split("").reverse()[0] === "*"){
-              _r_path = _r_path.split("").reverse().join("").replace("*/").split("").reverse().join("");
-              if(_r_path === ""){_r_path="/"}
-            }
-            files = files.concat(_r_path + "/*");
-          }
-        }
-        else{
-          this.print("ls: this folder was not found");
-        }
-      }
-    }*/
 
     files = files.sort(_prompted_helper.nameSort);
     html = "<ul class=\"flex-list\">";
