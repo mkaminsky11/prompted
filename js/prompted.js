@@ -5,7 +5,6 @@
 //TODO: find (-iname, etc) <-- tags are iffy
 //TODO: df ?
 //TODO: mv <--change everything that starts with the path
-//TODO: wget
 //TODO: quotes + dquote? <-- iffy
 
 /*
