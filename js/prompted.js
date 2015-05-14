@@ -535,4 +535,3 @@ _prompted_helper.startsWith = function(start, test){
 	//does test start with start?
 	return test.indexOf(start) === 0;
 };
-}
