@@ -2,6 +2,10 @@
 
 Vanilla JS terminal made easy
 
+> NOTE:  
+> Some things don't work quite like a **real** Linux terminal.
+> It's just javascript, so calm down
+
 ## Usage
 First import the basic CSS and a theme
 ```html
