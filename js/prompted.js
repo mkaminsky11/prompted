@@ -124,6 +124,9 @@ function _prompted(elem, options){
             else if(command === "touch"){
               this.touch(val.replace("touch","").trim());
             }
+            else if(command === "rm"){
+            	this.rm(val.replace("rm","").trim());
+            }
             else{
               this.print("This command does not exist")
             }
@@ -134,6 +137,23 @@ function _prompted(elem, options){
         this.afterInput(val);
     }
   }.bind(this), false);
+}
+
+_prompted.prototype.rm = function(arg){
+	if(arg.trim() !== ""){
+		arg = arg.split(" ");
+		for(var i = 0; i < arg.length; i++){
+			var path = this.resolve(this.path, arg[i]);
+			var possible = this.findFolders(path);
+			for(var k = 0; k < possible.length; k++){
+				for(var j = 0; j < this.data.length; j++){
+					if(_prompted_helper.startsWith(possible[k].path, this.data[j].path)){
+						this.data = this.data.splice(j, 1);
+					}
+				}
+			}
+		}
+	}
 }
 
 _prompted.prototype.touch = function(arg){
@@ -306,23 +326,27 @@ _prompted.prototype.ls = function(_path){
       }
     }
     //if anything in files, print it!
-
-    files = files.sort(_prompted_helper.nameSort);
-    html = "<ul class=\"flex-list\">";
-    for(var i = 0; i < files.length; i++){
-      if(files[i].folder === true){
-        html += "<li class=\"prompted-accent-2\">" + files[i].name + "</li>";
-      }
-      else if(this.specialExt.indexOf(_prompted_helper.ext(files[i].name)) !== -1){
-        html += "<li class=\"prompted-accent-3\">" + files[i].name + "</li>";
-      }
-      else{
-        html += "<li>" + files[i].name + "</li>";
-      }
-    }
-
-    html += "</ul>";
-    this.insert(html);
+	if(files.length > 0){
+	    files = files.sort(_prompted_helper.nameSort);
+	    html = "<ul class=\"flex-list\">";
+	    for(var i = 0; i < files.length; i++){
+	      if(files[i].folder === true){
+	        html += "<li class=\"prompted-accent-2\">" + files[i].name + "</li>";
+	      }
+	      else if(this.specialExt.indexOf(_prompted_helper.ext(files[i].name)) !== -1){
+	        html += "<li class=\"prompted-accent-3\">" + files[i].name + "</li>";
+	      }
+	      else{
+	        html += "<li>" + files[i].name + "</li>";
+	      }
+	    }
+	
+	    html += "</ul>";
+	    this.insert(html);
+	}
+	else{
+		this.print("ls: this folder was not found");
+	}
 };
 
 _prompted.prototype.print = function(text){
@@ -506,3 +530,9 @@ _prompted_helper.getParent = function(path){
     return parent.replace("/","").split("").reverse().join("");
   }
 };
+
+_prompted_helper.startsWith = function(start, test){
+	//does test start with start?
+	return test.indexOf(start) === 0;
+};
+}
