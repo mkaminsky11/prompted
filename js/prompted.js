@@ -10,6 +10,8 @@
 //TODO: intro text
 //TODO: file manipulation via functions
 //TODO: history
+//TODO: cp
+//TODO: &
 
 /*
 * JUST FOR INIT
@@ -153,10 +155,44 @@ function _prompted(elem, options){
 
 _prompted.prototype.mv = function(arg){
 	/*
-	mv 1 2 if names don't match, move 2 into 1
-	mv 2 1/2 if names do match, merge 2 and 1/2
-	mv 2 .. move 2 to .. resolved
+	if(place to move doesn't exist but parent exists)
+		create, move in all contents
+	if(place to move exists)
+		add entire contents into this folder
+	else
+		error! not found
+	
+		
+	mv 1 2 //moves 1 inside of 2
 	*/
+	arg = arg.split(" ");
+	if(arg.length === 2){
+		var refer = _prompted_helper.resolve(this.path, arg[0]); //everything that starts with this... can have *
+		var dest = _prompted_helper.resolve(this.path, arg[1]);  //move here... cannot have *
+		if(dest.indexOf("*") === -1){
+			refer = this.findAll(refer);
+			var parent = _prompted_helper.getParent(dest);
+			if(this.exists(parent)){
+				if(this.exists(dest)){
+					//create it
+					
+					//move in
+				}
+				else{
+					//just move in
+				}
+			}
+			else{
+				this.print("mv: folder not found");	
+			}
+		}
+		else{
+			this.print("mv: wildcards are not allowed for the destination");
+		}
+	}
+	else{
+		this.print("mv: not enough arguments")
+	}
 };
 
 _prompted.prototype.hideInput = function(){
