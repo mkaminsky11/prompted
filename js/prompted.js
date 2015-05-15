@@ -4,12 +4,12 @@
 //TODO: docs!
 //TODO: add own functions
 //TODO: find (-iname, etc) <-- tags are iffy
-//TODO: df ?
-//TODO: mv <--change everything that starts with the path
+//TODO: mv <--replace start with new...
 //TODO: quotes + dquote? <-- iffy
 //TODO: cleanup!
 //TODO: intro text
 //TODO: file manipulation via functions
+//TODO: history
 
 /*
 * JUST FOR INIT
@@ -151,6 +151,14 @@ function _prompted(elem, options){
   }.bind(this), false);
 }
 
+_prompted.prototype.mv = function(arg){
+	/*
+	mv 1 2 if names don't match, move 2 into 1
+	mv 2 1/2 if names do match, merge 2 and 1/2
+	mv 2 .. move 2 to .. resolved
+	*/
+};
+
 _prompted.prototype.hideInput = function(){
   _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display = "none";
 };
@@ -221,26 +229,32 @@ _prompted.prototype.touch = function(arg){
 _prompted.prototype.touch.help = (function () {/*usage:
 touch [-A [-][[hh]mm]SS] [-acfhm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-//TODO: allow for *
 _prompted.prototype.mkdir = function(arg){
   arg = arg.split(" ");
   for(var i = 0; i < arg.length; i++){
-    var to_push = {};
-    to_push.path = _prompted_helper.resolve(this.path, arg[i]);
-    to_push.name = to_push.path.split("/").reverse()[0];
-    to_push.parent = _prompted_helper.getParent(to_push.path);
-    to_push.folder = true;
+    var path = _prompted_helper.resolve(this.path, arg[i]);
+    var name = path.split("/").reverse()[0];
+    var parent = this.findFolders(_prompted_helper.getParent(path));
+    //may have *
+    for(var j = 0; j < parent.length; j++){
+      var to_push = {};
+      console.log(parent);
+      to_push.path = _prompted_helper.resolve(parent[j].path, name);
+      to_push.name = name;
+      to_push.parent = parent[j].path;
+      to_push.folder = true;
 
-    if(this.canCd(to_push.parent)){
-      if(this.exists(to_push.path)){
-        this.print("mkdir: this folder already exists");
+      if(this.canCd(to_push.parent)){
+        if(this.exists(to_push.path)){
+          this.print("mkei4: this file already exists");
+        }
+        else{
+          this.data.push(to_push);
+        }
       }
       else{
-        this.data.push(to_push);
+        this.print("mkdir: folder not found");
       }
-    }
-    else{
-      this.print("mkdir: folder not found");
     }
   }
 };
