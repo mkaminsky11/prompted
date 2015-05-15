@@ -7,8 +7,6 @@
 //TODO: df ?
 //TODO: mv <--change everything that starts with the path
 //TODO: quotes + dquote? <-- iffy
-//TODO: hide/show input
-//TODO: wget
 //TODO: cleanup!
 //TODO: intro text
 //TODO: file manipulation via functions
@@ -132,8 +130,8 @@ function _prompted(elem, options){
               else if(command === "rm"){
               	this.rm(val.replace("rm","").trim());
               }
-              else if(command === "wget"){
-              	this.wget(raw_val.replace("wget","").trim());
+              else if(command === "mv"){
+              	this.mv(val.replace("mv","").trim());
               }
               else{
                 this.print("This command does not exist")
@@ -165,46 +163,11 @@ _prompted.prototype.inputHidden = function(){
   return _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display === "none";
 };
 
-_prompted.prototype.wget = function(arg){
-  //if -O, save to next
-  if(arg !== ""){
-    arg = arg.split(" ");
-    var output_path = "";
+_prompted.prototype.mv = function(arg){
 
-    if(arg.indexOf("-O") !== -1 && arg.length > (arg.indexOf("-O") + 1)){
-      output_path = _prompted_helper.resolve(this.path, arg[arg.indexOf("-O") + 1]);
-      arg.splice(arg.indexOf("-O"), 2);
-    }
+};
 
-    var input_path = arg[0];
-    this.hideInput();
-    _prompted_helper.ajax(input_path, function(jsonFile){
-      //ok!
-      this.print("ok!");
-      this.showInput();
-    }, function(jsonFile){
-      this.print("not ok!");
-      this.showInput();
-    });
-
-  }
-  else{
-    this.print("wget: no file specified")
-  }
-}
-
-_prompted.prototype.wget.help = (function(){/*
-GNU Wget 1.15, a non-interactive network retriever.
-Usage: wget [OPTION]... [URL]...
-
-Mandatory arguments to long options are mandatory for short options too.
-
-Download:
-  -O,  --output-document=FILE    write documents to FILE.
-Mail bug reports and suggestions to <bug-wget@gnu.org>
-*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
-
-_prompted.prototype.rm = function(arg){
+_prompted.prototype.rm = function(arg){ //clean
 	if(arg.trim() !== ""){
 		arg = arg.split(" ");
 		for(var i = 0; i < arg.length; i++){
@@ -225,27 +188,33 @@ _prompted.prototype.rm = function(arg){
 _prompted.prototype.rm.help = (function () {/*usage: rm [-f | -i] [-dPRrvW] file ...
        unlink file*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-//TODO: allow for *
 _prompted.prototype.touch = function(arg){
   arg = arg.split(" ");
   for(var i = 0; i < arg.length; i++){
-    var to_push = {};
-    to_push.path = _prompted_helper.resolve(this.path, arg[i]);
-    to_push.name = to_push.path.split("/").reverse()[0];
-    to_push.parent = _prompted_helper.getParent(to_push.path);
-    to_push.folder = false;
-    to_push.contents = "";
+    var path = _prompted_helper.resolve(this.path, arg[i]);
+    var name = path.split("/").reverse()[0];
+    var parent = this.findFolders(_prompted_helper.getParent(path));
+    //may have *
+    for(var j = 0; j < parent.length; j++){
+      var to_push = {};
+      console.log(parent);
+      to_push.path = _prompted_helper.resolve(parent[j].path, name);
+      to_push.name = name;
+      to_push.parent = parent[j].path;
+      to_push.folder = false;
+      to_push.contents = "";
 
-    if(this.canCd(to_push.parent)){
-      if(this.exists(to_push.path)){
-        this.print("touch: this file already exists");
+      if(this.canCd(to_push.parent)){
+        if(this.exists(to_push.path)){
+          this.print("touch: this file already exists");
+        }
+        else{
+          this.data.push(to_push);
+        }
       }
       else{
-        this.data.push(to_push);
+        this.print("touch: folder not found");
       }
-    }
-    else{
-      this.print("touch: folder not found");
     }
   }
 };
@@ -374,7 +343,7 @@ _prompted.prototype.cat = function(arg){
 }
 _prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-
+//TODO: output results organized by location
 _prompted.prototype.ls = function(_path){
     var files = []
     if(_path === ""){
