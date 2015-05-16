@@ -6,14 +6,14 @@ A Linux terminal emulator written in Javascript
 ### What it can do
 + evaluate commands
 + simulate a basic file structure
-+ give errors
++ give some errors
++ basic autocomplete
 
 ### What it can't do(yet)
-+ autocomplete on tab
 + pipe
 + exactly replicate a Linux terminal
 
-It's written in Javascript, so just calm down
+It's written in Javascript, so just calm down. It's not perfect.
 
 ## Basics
 

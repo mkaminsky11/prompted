@@ -1,17 +1,16 @@
 //GOAL: terminal emulator in less than 1000 lines
 
-//TODO: autocomplete (uh-oh)
-//TODO: docs!
-//TODO: add own functions
+//TODO: docs! <-- once everything else is done
 //TODO: find (-iname, etc) <-- tags are iffy
 //TODO: mv <--replace start with new...
 //TODO: quotes + dquote? <-- iffy
 //TODO: cleanup!
-//TODO: intro text
 //TODO: file manipulation via functions
 //TODO: cp
 //TODO: images and url
 //TODO: nano
+//TODO: disable functions
+//TODO: exit?
 
 /*
 * JUST FOR INIT
@@ -61,8 +60,10 @@ function _prompted(elem, options){
   this.data = [];
   this.path = "/";
   this.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
-  this.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history"];
+  this.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help"];
+  this.rawCommands = [];
   this.commandHistory = [];
+  this.introText = "Welcome to Prompted, a Linux terminal emulator written in Javascript!\nType &quot;help&quot; to see all available functions. \nStar us <a href=\"https://github.com/mkaminsky11/prompted\" target=\"_blank\">here</a> to support this project!\n-----------\nWritten by Michael Kaminsky";
 
   //prompt
   if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
@@ -71,6 +72,7 @@ function _prompted(elem, options){
   if(_prompted_helper.exists(options.afterInput)){this.afterInput = options.afterInput}
   if(_prompted_helper.exists(options.disable)){this.disable = options.disable}
   if(_prompted_helper.exists(options.data)){this.readTree(options.data,this.path)}
+  if(_prompted_helper.exists(options.introText)){this.introText = options.introText}
 
   var main = document.createElement("DIV");
   main.className = "prompted prompted-s-default";
@@ -80,7 +82,7 @@ function _prompted(elem, options){
   this.elem = main;
   var inp = _prompted_helper.toArray(main.getElementsByClassName("prompted-input")).reverse()[0];
   inp.focus();
-  inp.addEventListener("keyup", function(e){
+  inp.addEventListener("keydown", function(e){
     e.which = e.which || e.keyCode;
     if(e.which == 13) {
         // submit
@@ -88,16 +90,11 @@ function _prompted(elem, options){
         if(this.disable === false){
           var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
           var val = inp.value;
+
+          this.resetInput();
+
           inp.value = "";
           inp.focus();
-
-          var newNode = document.createElement("DIV");
-          newNode.className = "prompted-row";
-          newNode.innerHTML = "<span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>"+"<span class=\"prompted-accent-2\">" + this.path + "</span>"+"</span><input type=\"text\" class=\"prompted-input\" readonly spellcheck=\"false\" value=\""+val+"\">";
-
-          //insert new row before the last row
-          var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
-          this.elem.insertBefore(newNode, last_row);
 
           //output should be inserted before the last row
           this.commandHistory.push(val.trim());
@@ -112,8 +109,65 @@ function _prompted(elem, options){
         }
         this.afterInput(val);
     }
+    else if(e.which == 9){
+      e.preventDefault();
+      var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
+      inp.focus();
+      var pos_goal =  _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0].selectionStart;
+      var arr = inp.value.split(" ");
+      var section = "";
+      var pos = 0;
+      var index = null;
+      for(var i = 0; i < arr.length; i++){
+        if(pos_goal >= pos && pos_goal <= (pos + arr[i].length)){
+          section = arr[i];
+          index = i;
+        }
+        pos = pos + arr[i].length;
+        pos++;
+      }
+
+      var res = this.autoComplete(section);
+      if(res.length === 1 && index !== null){
+        arr[index] = res[0].path;
+        inp.value = arr.join(" ");
+      }
+      else if(index !== null){
+        //more than 1
+        this.resetInput();
+        this.listFiles(res,false);
+      }
+      e.preventDefault();
+    }
   }.bind(this), false);
+  this.print(this.introText);
 }
+
+_prompted.prototype.resetInput = function(){
+  var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
+  var val = inp.value;
+
+  var newNode = document.createElement("DIV");
+  newNode.className = "prompted-row";
+  newNode.innerHTML = "<span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>"+"<span class=\"prompted-accent-2\">" + this.path + "</span>"+"</span><input type=\"text\" class=\"prompted-input\" readonly spellcheck=\"false\" value=\""+val+"\">";
+
+  //insert new row before the last row
+  var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
+  this.elem.insertBefore(newNode, last_row);
+};
+
+_prompted.prototype.autoComplete = function(path){
+  path = path + "*";
+  path = _prompted_helper.resolve(this.path, path);
+  var reg = this.regexp(path);
+  var paths = [];
+  for(var i = 0; i < this.data.length; i++){
+    if(reg.test(this.data[i].path) === true && path.split("/").length === this.data[i].path.split("/").length){
+      paths.push(this.data[i]);
+    }
+  }
+  return paths;
+};
 
 _prompted.prototype.eval = function(val){
   val = val.trim();
@@ -125,16 +179,23 @@ _prompted.prototype.eval = function(val){
       val = _prompted_helper.removeTags(val);
 
       if(_prompted_helper.exists(this[command]) && this.commands.indexOf(command) !== -1){
-        this[command](val.replace(command,"").trim())
+        if(this.rawCommands.indexOf(command) === -1){
+          this[command](val.replace(command,"").trim());
+        }
+        else{
+          this[command](raw_val.replace(command,"").trim());
+        }
       }
       else{
-        console.log(command);
         this.print("This command does not exist")
       }
     }
     else{
       if(_prompted_helper.exists(this[command].help)){
         this.print(this[command].help);
+      }
+      else{
+        this.print(command + " has no documentation");
       }
     }
   }
@@ -214,17 +275,46 @@ _prompted.prototype.readTree = function(tree, path){
     }
     else if(_prompted_helper.exists(tree[i].contents)){
       //a folder with contents
-      this.readTree(tree[i].contents, tree[i].path);
+      this.readTree(tree[i].contents, to_push.path);
     }
 
     this.data.push(to_push);
   }
 };
 
+_prompted.prototype.createCommand = function(command_name, func, raw){
+  //configure raw
+  if(raw === true){
+    if(this.rawCommands.indexOf(command_name) === -1){
+      this.rawCommands.push(command_name);
+    }
+  }
+  else{
+    if(this.rawCommands.indexOf(command_name) === -1){
+        this.rawCommands.splice(this.rawCommands.indexOf(command_name), 1);
+    }
+  }
+
+  if(this.commands.indexOf(command_name) === -1){
+    this.commands.push(command_name);
+  }
+
+  if(func.length !== 1){
+    throw "This function must have only one argument";
+  }
+  else{
+    this[command_name] = func;
+  }
+}
+
 
 /*
 COMMANDS
 */
+
+_prompted.prototype.help = function(arg){
+  this.print(this.commands.join("\n"));
+}
 
 _prompted.prototype.history = function(arg){
   this.print(this.commandHistory.join("\n"));
@@ -381,7 +471,6 @@ _prompted.prototype.cat = function(arg){
 }
 _prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-//TODO: output results organized by location
 _prompted.prototype.ls = function(arg){
   if(arg === ""){
     //list all in this.path
@@ -549,12 +638,6 @@ _prompted_helper.getParent = function(path){
     return parent.replace("/","").split("").reverse().join("");
   }
 };
-
-_prompted_helper.startsWith = function(start, test){
-	//does test start with start?
-	return test.indexOf(start) === 0;
-};
-
 _prompted_helper.resolve = function(path, cd){
 
   if(cd[0] === "~"){cd=cd.replace("~","/")}

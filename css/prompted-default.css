@@ -29,6 +29,7 @@
 .prompted-s-default .prompted-input{
   font-size: 13px;
   color: white;
+  font-family: "Inconsolata" !important;
 }
 
 .prompted-s-default .prompted-prompt .prompted-accent-2{
