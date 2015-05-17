@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+      <link rel="stylesheet" href="../css/prompted.css">
+      <link rel="stylesheet" href="../css/prompted-default.css">
+
+      <style>
+        body, html{
+          width: 100%;
+          height: 100%;
+          margin: 0;
+        }
+
+        #main{
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+
+  </head>
+  <body>
+
+    <div id="main"></div>
+
+    <script src="../js/jquery.js"></script>
+    <script src="../js/prompted.js"></script>
+    <script>
+      var start, end;
+      var terminal = prompted(document.getElementById("main"),{
+        beforeInput: function(val){
+          start = +new Date();
+        },
+        afterInput: function(val){
+          end = +new Date();
+          console.log(end - start);
+        }
+      })[0];
+    </script>
+
+  </body>
+</html>

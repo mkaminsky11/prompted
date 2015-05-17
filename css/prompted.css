@@ -62,3 +62,8 @@
   margin-right: 1%;
   font-size: 14px;
 }
+
+.prompted pre{
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}

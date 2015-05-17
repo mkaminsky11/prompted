@@ -6,7 +6,7 @@
 //TODO: quotes + dquote? <-- iffy
 //TODO: cleanup!
 //TODO: file manipulation via functions
-//TODO: cp
+//TODO: cp <--kind of like mv except nothing is getting deleted
 //TODO: images and url
 //TODO: nano
 //TODO: disable functions
@@ -53,17 +53,6 @@ function prompted(elems, options){
 */
 
 function _prompted(elem, options){
-  this.prompt = "root@localhost";
-  this.beforeInput = function(e){};
-  this.afterInput = function(e){};
-  this.disable = false; //disable default output?
-  this.data = [];
-  this.path = "/";
-  this.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
-  this.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help"];
-  this.rawCommands = [];
-  this.commandHistory = [];
-  this.introText = "Welcome to Prompted, a Linux terminal emulator written in Javascript!\nType &quot;help&quot; to see all available functions. \nStar us <a href=\"https://github.com/mkaminsky11/prompted\" target=\"_blank\">here</a> to support this project!\n-----------\nWritten by Michael Kaminsky";
 
   //prompt
   if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
@@ -86,7 +75,7 @@ function _prompted(elem, options){
     e.which = e.which || e.keyCode;
     if(e.which == 13) {
         // submit
-        this.beforeInput
+        this.beforeInput(val);
         if(this.disable === false){
           var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
           var val = inp.value;
@@ -142,6 +131,31 @@ function _prompted(elem, options){
   }.bind(this), false);
   this.print(this.introText);
 }
+
+_prompted.prototype.prompt = "root@localhost";
+_prompted.prototype.beforeInput = function(e){};
+_prompted.prototype.afterInput = function(e){};
+_prompted.prototype.disable = false; //disable default output?
+_prompted.prototype.data = [];
+_prompted.prototype.path = "/";
+_prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
+_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help"];
+_prompted.prototype.rawCommands = [];
+_prompted.prototype.commandHistory = [];
+_prompted.prototype.introText = (function () {/*
+ ________  ________  ________  _____ ______   ________  _________  _______   ________
+|\   __  \|\   __  \|\   __  \|\   _ \  _   \|\   __  \|\___   ___\\  ___ \ |\   ___ \
+\ \  \|\  \ \  \|\  \ \  \|\  \ \  \\\__\ \  \ \  \|\  \|___ \  \_\ \   __/|\ \  \_|\ \
+ \ \   ____\ \   _  _\ \  \\\  \ \  \\|__| \  \ \   ____\   \ \  \ \ \  \_|/_\ \  \ \\ \
+  \ \  \___|\ \  \\  \\ \  \\\  \ \  \    \ \  \ \  \___|    \ \  \ \ \  \_|\ \ \  \_\\ \
+   \ \__\    \ \__\\ _\\ \_______\ \__\    \ \__\ \__\        \ \__\ \ \_______\ \_______\
+    \|__|     \|__|\|__|\|_______|\|__|     \|__|\|__|         \|__|  \|_______|\|_______|
+
+
+A Linux terminal emulator written in Javascript.
+Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>
+
+Type "help" to see all of the available commands*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
 _prompted.prototype.resetInput = function(){
   var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
@@ -251,12 +265,23 @@ _prompted.prototype.canCd = function(path){
 };
 
 _prompted.prototype.exists = function(path){
-  for(var i = 0; i < this.data.length; i++){
-      if(this.data[i].path === path){
+  if(path.indexOf("*") === -1){
+    for(var i = 0; i < this.data.length; i++){
+        if(this.data[i].path === path){
+          return true;
+        }
+    }
+    return false;
+  }
+  else{
+    var reg = this.regexp(path);
+    for(var i = 0; i < this.data.length; i++){
+      if(reg.test(this.data[i].path) === true && this.data[i].path.split("/").length === path.split("/").length){
         return true;
       }
+    }
+    return false;
   }
-  return false;
 };
 
 _prompted.prototype.readTree = function(tree, path){
@@ -321,17 +346,71 @@ _prompted.prototype.history = function(arg){
 };
 
 _prompted.prototype.mv = function(arg){
-	/*
-	if(place to move doesn't exist but parent exists)
-		create, move in all contents
-	if(place to move exists)
-		add entire contents into this folder
-	else
-		error! not found
+  arg = arg.split(" ");
+  if(arg.length === 2){
+    var to_be_moved = _prompted_helper.resolve(this.path, arg[0]);
+    var move_to = _prompted_helper.resolve(this.path, arg[1]);
+    if(move_to.indexOf("*") === -1){ //* in to_be_moved is ok, not in move_to
+      //probably don't want to move "/" TODO
+      if(to_be_moved !== "/"){
+        var reg_folder = this.regexp(to_be_moved + "/*");
+        var reg_parent = this.regexp(to_be_moved);
+        var push = [];
+        for(var i = 0; i < this.data.length; i++){
+          if(reg_parent.test(this.data[i].path) === true && this.data[i].path.split("/").length === to_be_moved.split("/").length){
+            var new_path = null;
+            var path = this.data[i].path;
+            var ok = true;
 
+            if(this.exists(move_to) || move_to === "/"){
+              //move into here
+              var new_parent = move_to;
+              new_path = new_parent + "/" + this.data[i].name;
+              if(new_parent === "/"){
+                new_path = "/" + this.data[i].name;
+              }
+              this.data[i].path = new_path;
+              this.data[i].parent = new_parent;
+            }
+            else if(this.exists(_prompted_helper.getParent(move_to))){
+              //make a new file
+              var new_parent = _prompted_helper.getParent(move_to);
+              var new_name = move_to.split("/").reverse()[0];
+              new_path  = new_parent + "/" + new_name;
+              if(new_parent === "/"){
+                new_path = "/" + new_name;
+              }
+              this.data[i].name = new_name;
+              this.data[i].path = new_path;
+              this.data[i].parent = new_parent;
+            }
+            else{
+              ok = false;
+              this.print("mv: " + _prompted_helper.getParent(move_to) + " does not exist");
+            }
 
-	mv 1 2 //moves 1 inside of 2
-	*/
+            if(this.data[i].folder === true && ok === true){
+              for(var j = 0; j < this.data.length; j++){
+                if(this.data[j].parent.indexOf(path) === 0){
+                  this.data[j].parent = this.data[j].parent.replace(path, new_path);
+                  this.data[j].path = this.data[j].parent + "/" + this.data[j].name;
+                }
+              }
+            }
+          }
+        }
+      }
+      else{
+        this.print("mv: you can't move root")
+      }
+    }
+    else{
+      this.print("mv: wildcards are not allowed in the destination");
+    }
+  }
+  else{
+    this.print("mv: not enough arguments");
+  }
 };
 
 
@@ -368,7 +447,7 @@ _prompted.prototype.mkdir = function(arg){
 };
 _prompted.prototype.mkdir.help = (function () {/*usage: mkdir [-pv] [-m mode] directory ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.create = function(arg, folder){
+_prompted.prototype.create = function(arg, folder){ //TODO: rework!
   arg = arg.split(" ");
   for(var i = 0; i < arg.length; i++){
     var path = _prompted_helper.resolve(this.path, arg[i]);
@@ -383,7 +462,7 @@ _prompted.prototype.create = function(arg, folder){
       to_push.parent = "/";
       to_push.folder = folder;
 
-      if(this.exists(to_push.path)){
+      if(this.exists(to_push.path)){ //try to do with only 1 loop...
         this.print("mkdir: "+to_push.name+" already exists");
       }
       else{
@@ -508,7 +587,6 @@ _prompted.prototype.ls = function(arg){
         }
       }
       else{
-        //TODO: if /
         var reg = this.regexp("/*");
         var files = [];
         for(var j = 0; j < this.data.length; j++){
@@ -522,7 +600,7 @@ _prompted.prototype.ls = function(arg){
   }
 };
 
-_prompted.prototype.listFiles = function(files, title){
+_prompted.prototype.listFiles = function(files, title){ //TODO: remove this, put directly in loop
   files = files.sort(_prompted_helper.nameSort);
   var html = "<ul class=\"flex-list\">";
   if(title !== false){this.print(title + ":")}
