@@ -48,3 +48,18 @@
   color: #AF94B9;
   font-weight: bold;
 }
+
+.prompted-s-default .prompted-nano{
+
+}
+
+.prompted-s-default .prompted-nano textarea{
+  font-family: "Inconsolata" !important;
+  font-size: 13px;
+}
+
+.prompted-s-default .prompted-nano span{
+  background-color: white;
+  color: rgb(13, 13, 13);
+  font-size: 14px;
+}

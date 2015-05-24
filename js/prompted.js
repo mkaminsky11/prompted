@@ -133,7 +133,7 @@ _prompted.prototype.disable = false; //disable default output?
 _prompted.prototype.data = [];
 _prompted.prototype.path = "/";
 _prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
-_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help"];
+_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help","nano"];
 _prompted.prototype.rawCommands = [];
 _prompted.prototype.commandHistory = [];
 _prompted.prototype.disabledCommands = [];
@@ -577,6 +577,10 @@ _prompted.prototype.cat = function(arg){
 }
 _prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
+_prompted.prototype.nano = function(arg){
+  this.print("nano: load prompted-nano.js to use");
+}
+
 _prompted.prototype.ls = function(arg){
   if(arg === ""){
     //list all in this.path
@@ -762,4 +766,34 @@ _prompted_helper.resolve = function(path, cd){
   }
 
   return "/" + path.join(" ").trim().split(" ").join("/");
+};
+
+_prompted_helper.getStyle = function(el, styleProp) {
+  var value, defaultView = (el.ownerDocument || document).defaultView;
+  // W3C standard way:
+  if (defaultView && defaultView.getComputedStyle) {
+    // sanitize property name to css notation
+    // (hypen separated words eg. font-Size)
+    styleProp = styleProp.replace(/([A-Z])/g, "-$1").toLowerCase();
+    return defaultView.getComputedStyle(el, null).getPropertyValue(styleProp);
+  } else if (el.currentStyle) { // IE
+    // sanitize property name to camelCase
+    styleProp = styleProp.replace(/\-(\w)/g, function(str, letter) {
+      return letter.toUpperCase();
+    });
+    value = el.currentStyle[styleProp];
+    // convert other units to pixels on IE
+    if (/^\d+(em|pt|%|ex)?$/i.test(value)) {
+      return (function(value) {
+        var oldLeft = el.style.left, oldRsLeft = el.runtimeStyle.left;
+        el.runtimeStyle.left = el.currentStyle.left;
+        el.style.left = value || 0;
+        value = el.style.pixelLeft + "px";
+        el.style.left = oldLeft;
+        el.runtimeStyle.left = oldRsLeft;
+        return value;
+      })(value);
+    }
+    return value;
+  }
 };
