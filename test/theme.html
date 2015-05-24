@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+      <link rel="stylesheet" href="../css/prompted.css">
+      <link rel="stylesheet" href="../css/prompted-light.css">
+
+      <style>
+        body, html{
+          width: 100%;
+          height: 100%;
+          margin: 0;
+        }
+
+        #main{
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+
+  </head>
+  <body>
+
+    <div id="main"></div>
+
+    <script src="../js/jquery.js"></script>
+    <script src="../js/prompted.js"></script>
+    <script>
+      var terminal = prompted(document.getElementById("main"),{
+        theme: "light"
+      })[0];
+    </script>
+
+  </body>
+</html>

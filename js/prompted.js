@@ -1,16 +1,10 @@
-//GOAL: terminal emulator in less than 1000 lines
-
-//TODO: docs! <-- once everything else is done
+//TODO: docs!
 //TODO: find (-iname, etc) <-- tags are iffy
-//TODO: mv <--replace start with new...
 //TODO: quotes + dquote? <-- iffy
-//TODO: cleanup!
 //TODO: file manipulation via functions
 //TODO: cp <--kind of like mv except nothing is getting deleted
 //TODO: images and url
 //TODO: nano
-//TODO: disable functions
-//TODO: exit?
 
 /*
 * JUST FOR INIT
@@ -62,9 +56,11 @@ function _prompted(elem, options){
   if(_prompted_helper.exists(options.disable)){this.disable = options.disable}
   if(_prompted_helper.exists(options.data)){this.readTree(options.data,this.path)}
   if(_prompted_helper.exists(options.introText)){this.introText = options.introText}
+  if(_prompted_helper.exists(options.disabledCommands)){this.disabledCommands = options.disabledCommands}
+  if(_prompted_helper.exists(options.theme)){this.theme = options.theme}
 
   var main = document.createElement("DIV");
-  main.className = "prompted prompted-s-default";
+  main.className = "prompted prompted-s-" + this.theme;
   main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input spellcheck=\"false\" type=\"text\" class=\"prompted-input\"></div>";
   elem.appendChild(main);
 
@@ -79,9 +75,7 @@ function _prompted(elem, options){
         if(this.disable === false){
           var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
           var val = inp.value;
-
           this.resetInput();
-
           inp.value = "";
           inp.focus();
 
@@ -142,6 +136,8 @@ _prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","
 _prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help"];
 _prompted.prototype.rawCommands = [];
 _prompted.prototype.commandHistory = [];
+_prompted.prototype.disabledCommands = [];
+_prompted.prototype.theme = "default";
 _prompted.prototype.introText = (function () {/*
  ________  ________  ________  _____ ______   ________  _________  _______   ________
 |\   __  \|\   __  \|\   __  \|\   _ \  _   \|\   __  \|\___   ___\\  ___ \ |\   ___ \
@@ -187,30 +183,35 @@ _prompted.prototype.eval = function(val){
   val = val.trim();
   if(val.trim() !== ""){
     var command = val.split(" ")[0];
-    if(val.split(" ").indexOf("--help") === -1){
-      //now, remove tags
-      var raw_val = val; //keep this...
-      val = _prompted_helper.removeTags(val);
+    if(this.disabledCommands.indexOf(command) === -1){
+      if(val.split(" ").indexOf("--help") === -1){
+        //now, remove tags
+        var raw_val = val; //keep this...
+        val = _prompted_helper.removeTags(val);
 
-      if(_prompted_helper.exists(this[command]) && this.commands.indexOf(command) !== -1){
-        if(this.rawCommands.indexOf(command) === -1){
-          this[command](val.replace(command,"").trim());
+        if(_prompted_helper.exists(this[command]) && this.commands.indexOf(command) !== -1){
+          if(this.rawCommands.indexOf(command) === -1){
+            this[command](val.replace(command,"").trim());
+          }
+          else{
+            this[command](raw_val.replace(command,"").trim());
+          }
         }
         else{
-          this[command](raw_val.replace(command,"").trim());
+          this.print("This command does not exist")
         }
       }
       else{
-        this.print("This command does not exist")
+        if(_prompted_helper.exists(this[command].help)){
+          this.print(this[command].help);
+        }
+        else{
+          this.print(command + " has no documentation");
+        }
       }
     }
     else{
-      if(_prompted_helper.exists(this[command].help)){
-        this.print(this[command].help);
-      }
-      else{
-        this.print(command + " has no documentation");
-      }
+      this.print(command + " is disabled");
     }
   }
 }
@@ -218,15 +219,12 @@ _prompted.prototype.eval = function(val){
 _prompted.prototype.hideInput = function(){
   _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display = "none";
 };
-
 _prompted.prototype.showInput = function(){
   _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display = "block";
 };
-
 _prompted.prototype.inputHidden = function(){
   return _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display === "none";
 };
-
 
 _prompted.prototype.regexp = function(path){
   return new RegExp("^" + path.split("*").join("(.*)").split("/").join("\/") + "$");
@@ -241,7 +239,6 @@ _prompted.prototype.print = function(text){
   var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
   this.elem.insertBefore(newNode, last_row);
 };
-
 _prompted.prototype.insert = function(html){
   var newNode = document.createElement("div");
   newNode.className = "prompted-row";
@@ -308,30 +305,45 @@ _prompted.prototype.readTree = function(tree, path){
 };
 
 _prompted.prototype.createCommand = function(command_name, func, raw){
-  //configure raw
-  if(raw === true){
+  if(raw === true){ //with tags and everything
     if(this.rawCommands.indexOf(command_name) === -1){
       this.rawCommands.push(command_name);
     }
   }
-  else{
-    if(this.rawCommands.indexOf(command_name) === -1){
-        this.rawCommands.splice(this.rawCommands.indexOf(command_name), 1);
-    }
+  else if(this.rawCommands.indexOf(command_name) === -1){
+    this.rawCommands.splice(this.rawCommands.indexOf(command_name), 1);
   }
 
   if(this.commands.indexOf(command_name) === -1){
     this.commands.push(command_name);
   }
 
+
   if(func.length !== 1){
     throw "This function must have only one argument";
   }
-  else{
-    this[command_name] = func;
-  }
+  else{this[command_name] = func;}
 }
+_prompted.prototype.disableCommand = function(command){
+  if(this.disabledCommands.indexOf(command) === -1){
+    this.disabledCommands.push(command);
+  }
+};
+_prompted.prototype.enableCommand = function(command){
+  if(this.disabledCommands.indexOf(command) !== -1){
+    this.disabledCommands.splice(this.disabledCommands.indexOf(command),1);
+  }
+};
+_prompted.prototype.commandDisabled = function(command){
+  return (this.disabledCommands.indexOf(command) !== -1)
+};
 
+
+_prompted.prototype.setTheme = function(theme){
+  this.elem.classList.remove("prompted-s-" + this.theme);
+  this.theme = theme;
+  this.elem.classList.add("prompted-s-" + theme);
+}
 
 /*
 COMMANDS
@@ -463,7 +475,12 @@ _prompted.prototype.create = function(arg, folder){ //TODO: rework!
       to_push.folder = folder;
 
       if(this.exists(to_push.path)){ //try to do with only 1 loop...
-        this.print("mkdir: "+to_push.name+" already exists");
+        if(folder === true){
+          this.print("mkdir: "+to_push.name+" already exists");
+        }
+        else{
+          this.print("touch: "+to_push.name+" already exists");
+        }
       }
       else{
         this.data.push(to_push);
@@ -482,7 +499,12 @@ _prompted.prototype.create = function(arg, folder){ //TODO: rework!
         to_push.folder = folder;
 
         if(this.exists(to_push.path)){
-          this.print("mkdir: "+to_push.name+" already exists");
+          if(folder === true){
+            this.print("mkdir: "+to_push.name+" already exists");
+          }
+          else{
+            this.print("touch: "+to_push.name+" already exists");
+          }
         }
         else{
           this.data.push(to_push);
@@ -494,7 +516,12 @@ _prompted.prototype.create = function(arg, folder){ //TODO: rework!
       }
     }
     if(found === false){
-      this.print("mkdir: "+par+" does not exist");
+      if(folder === true){
+        this.print("mkdir: "+par+" does not exist");
+      }
+      else{
+        this.print("touch: "+par+" does not exist");
+      }
     }
 
   }
