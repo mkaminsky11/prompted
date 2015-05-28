@@ -1,10 +1,10 @@
 //TODO: docs!
 //TODO: find (-iname, etc) <-- tags are iffy
-//TODO: quotes + dquote? <-- iffy
-//TODO: file manipulation via functions
-//TODO: cp <--kind of like mv except nothing is getting deleted
+//TODO: cp
 //TODO: images and url
 //TODO: nano
+//TODO: functions to
+//rename (mv)
 
 /*
 * JUST FOR INIT
@@ -81,16 +81,36 @@ function _prompted(elem, options){
 
           //output should be inserted before the last row
           this.commandHistory.push(val.trim());
+          this.historyIndex = this.commandHistory.length;
           if(val.trim() !== ""){
             var commands = val.trim().split(/&&|;/);
             for(var i = 0; i < commands.length; i++){
-              this.eval(commands[i]);
+              try{
+                this.eval(commands[i]);
+              }
+              catch(e){
+                this.print(e);
+              }
             }
           }
 
           _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-prompt")).reverse()[0].innerHTML = "<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>";
         }
         this.afterInput(val);
+    }
+    else if(e.which == 38){
+      if(this.historyIndex !== 0){
+        this.historyIndex--;
+        var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0]
+        inp.value = this.commandHistory[this.historyIndex];
+      }
+    }
+    else if(e.which == 40){
+      if(this.historyIndex !== (this.commandHistory.length - 1)){
+        this.historyIndex++;
+        var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0]
+        inp.value = this.commandHistory[this.historyIndex];
+      }
     }
     else if(e.which == 9){
       e.preventDefault();
@@ -138,15 +158,9 @@ _prompted.prototype.rawCommands = [];
 _prompted.prototype.commandHistory = [];
 _prompted.prototype.disabledCommands = [];
 _prompted.prototype.theme = "default";
+_prompted.prototype.historyIndex = 0;
 _prompted.prototype.introText = (function () {/*
- ________  ________  ________  _____ ______   ________  _________  _______   ________
-|\   __  \|\   __  \|\   __  \|\   _ \  _   \|\   __  \|\___   ___\\  ___ \ |\   ___ \
-\ \  \|\  \ \  \|\  \ \  \|\  \ \  \\\__\ \  \ \  \|\  \|___ \  \_\ \   __/|\ \  \_|\ \
- \ \   ____\ \   _  _\ \  \\\  \ \  \\|__| \  \ \   ____\   \ \  \ \ \  \_|/_\ \  \ \\ \
-  \ \  \___|\ \  \\  \\ \  \\\  \ \  \    \ \  \ \  \___|    \ \  \ \ \  \_|\ \ \  \_\\ \
-   \ \__\    \ \__\\ _\\ \_______\ \__\    \ \__\ \__\        \ \__\ \ \_______\ \_______\
-    \|__|     \|__|\|__|\|_______|\|__|     \|__|\|__|         \|__|  \|_______|\|_______|
-
+<h2 style="margin:0">PROMPTED</h2>
 
 A Linux terminal emulator written in Javascript.
 Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>
@@ -198,7 +212,7 @@ _prompted.prototype.eval = function(val){
           }
         }
         else{
-          this.print("This command does not exist")
+          throw "This command does not exist";
         }
       }
       else{
@@ -206,12 +220,12 @@ _prompted.prototype.eval = function(val){
           this.print(this[command].help);
         }
         else{
-          this.print(command + " has no documentation");
+          throw (command + " has no documentation");
         }
       }
     }
     else{
-      this.print(command + " is disabled");
+      throw (command + " is disabled");
     }
   }
 }
@@ -363,7 +377,7 @@ _prompted.prototype.mv = function(arg){
     var to_be_moved = _prompted_helper.resolve(this.path, arg[0]);
     var move_to = _prompted_helper.resolve(this.path, arg[1]);
     if(move_to.indexOf("*") === -1){ //* in to_be_moved is ok, not in move_to
-      //probably don't want to move "/" TODO
+      //probably don't want to move "/"
       if(to_be_moved !== "/"){
         var reg_folder = this.regexp(to_be_moved + "/*");
         var reg_parent = this.regexp(to_be_moved);
@@ -427,7 +441,11 @@ _prompted.prototype.mv = function(arg){
 
 
 _prompted.prototype.rm = function(arg){
-	if(arg.trim() !== ""){
+	this.REMOVE(arg);
+}
+_prompted.prototype.REMOVE = function(arg){
+  if(arg.trim() !== ""){
+    var res = [];
 		arg = arg.split(" ");
 		for(var i = 0; i < arg.length; i++){
       var path = _prompted_helper.resolve(this.path, arg[i]);
@@ -437,93 +455,107 @@ _prompted.prototype.rm = function(arg){
       var reg2 = this.regexp(path);
       for(var j = 0; j < this.data.length; j++){
         if(reg1.test(this.data[j].path) === true || reg2.test(this.data[j].path)){
+          res.push(this.data[j]);
           this.data.splice(j,1);
           j--;
         }
       }
 
 		}
+    return res;
 	}
 }
 _prompted.prototype.rm.help = (function () {/*usage: rm [-f | -i] [-dPRrvW] file ...
        unlink file*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
 _prompted.prototype.touch = function(arg){
-  this.create(arg, false);
+  try{
+    this.CREATE(arg, false);
+  } catch(e){
+    this.print("touch: " + e);
+  }
 };
 _prompted.prototype.touch.help = (function () {/*usage:
 touch [-A [-][[hh]mm]SS] [-acfhm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
 _prompted.prototype.mkdir = function(arg){
-  this.create(arg, true);
+  try{
+    this.CREATE(arg, true);
+  } catch(e){
+    this.print("mkdir: " + e);
+  }
 };
 _prompted.prototype.mkdir.help = (function () {/*usage: mkdir [-pv] [-m mode] directory ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.create = function(arg, folder){ //TODO: rework!
-  arg = arg.split(" ");
-  for(var i = 0; i < arg.length; i++){
-    var path = _prompted_helper.resolve(this.path, arg[i]);
-    var name = path.split("/").reverse()[0];
-    var par = _prompted_helper.getParent(path);
-    var reg = this.regexp(par);
+_prompted.prototype.CREATE = function(){ //TODO: rework!
+  var arg = null;
+  var folder = null;
+  var content = "";
+  if(arguments.length === 3){
+    content = arguments[2];
+  }
+  if(arguments.length === 2 || arguments.length === 3){
+    arg = arguments[0];
+    folder = arguments[1];
 
-    if(par === "/"){
-      var to_push = {};
-      to_push.path = "/" + name;
-      to_push.name = name;
-      to_push.parent = "/";
-      to_push.folder = folder;
+    arg = arg.split(" ");
+    for(var i = 0; i < arg.length; i++){
+      var path = _prompted_helper.resolve(this.path, arg[i]);
+      if(path === "/"){
+        throw "can't create root";
+      }
+      var parents = []; //store all of the parents
+      var parent = _prompted_helper.getParent(path);
+      if(parent === "/"){
+        parents = ["/"]
+      }
+      var reg = this.regexp(parent);
+      var reg1 = this.regexp(path);
+      var matches = []; //all that already match/already exist
 
-      if(this.exists(to_push.path)){ //try to do with only 1 loop...
-        if(folder === true){
-          this.print("mkdir: "+to_push.name+" already exists");
+      for(var j = 0; j < this.data.length; j++){
+        if(reg1.test(this.data[j].path) === true && path.split("/").length === this.data[j].path.split("/").length ){
+            //a file that matches
+            matches.push(this.data[j]);
         }
-        else{
-          this.print("touch: "+to_push.name+" already exists");
+        else if(reg.test(this.data[j].path) === true && parent.split("/").length === this.data[j].path.split("/").length && this.data[j].folder === true){
+            //a file that matches
+            parents.push(this.data[j].path);
         }
       }
-      else{
-        this.data.push(to_push);
-      }
-      continue;
-    }
 
-    var found = false;
-    for(var j = 0; j < this.data.length; j++){
-      if(reg.test(this.data[j].path) === true && par.split("/").length === this.data[j].path.split("/").length && this.data[j].folder === true){
-        found = true;
-        var to_push = {};
-        to_push.path = _prompted_helper.resolve(this.data[j].path, name);
-        to_push.name = name;
-        to_push.parent = this.data[j].path;
-        to_push.folder = folder;
-
-        if(this.exists(to_push.path)){
-          if(folder === true){
-            this.print("mkdir: "+to_push.name+" already exists");
-          }
-          else{
-            this.print("touch: "+to_push.name+" already exists");
+      console.log(parents);
+      //got all matches and parents
+      for(var j = 0; j < parents.length; j++){
+        var found = false;
+        for(var k = 0; k < matches.length; k++){
+          if(matches[k].parent === parents[j]){
+            found = matches[k].path;
           }
         }
+
+        if(found !== false){
+          throw (found + " already exists");
+        }
         else{
+          var name = path.split("/").reverse()[0];
+          var new_path = _prompted_helper.resolve(parents[j], name);
+          var to_push = {
+            name: name,
+            path: new_path,
+            parent: parents[j],
+            folder: folder
+          }
+          if(folder === false){
+            to_push.contents = content;
+          }
           this.data.push(to_push);
         }
-
-        if(arg[i].indexOf("*") === -1){
-          continue;
-        }
       }
     }
-    if(found === false){
-      if(folder === true){
-        this.print("mkdir: "+par+" does not exist");
-      }
-      else{
-        this.print("touch: "+par+" does not exist");
-      }
-    }
-
+  }
+  else{
+    throw "not enough arguments";
   }
 };
 
@@ -546,33 +578,71 @@ _prompted.prototype.clear = function(arg){
   }
 };
 
-_prompted.prototype.cat = function(arg){
-  if(arg !== ""){
+_prompted.prototype.FIND = function(arg){
+  if(arg.trim() !== ""){
+    var res = [];
     arg = arg.split(" ");
     for(var i = 0; i < arg.length; i++){
       var path = _prompted_helper.resolve(this.path, arg[i]);
       var reg = this.regexp(path);
-      var ok = false;
       for(var j = 0; j < this.data.length; j++){
-        if(reg.test(this.data[j].path) === true && path.split("/").length === this.data[j].path.split("/").length && this.data[j].folder === false){
-          //ok, add it on
-          this.print(_prompted_helper.escape(this.data[j].contents));
-
-          ok = true;
-          if(arg[i].indexOf("*") === -1){
-            continue;
-          }
+        if(reg.test(this.data[j].path) === true && path.split("/").length === this.data[j].path.split("/").length){
+          res.push(this.data[j]);
         }
       }
-      if(ok === false){
-        this.print("cat: no file found");
-      }
-    }
 
+    }
+    return res;
   }
   else{
-    //uh-oh
-    this.print("cat: no file specified");
+    throw "no file specified"
+  }
+}
+
+_prompted.prototype.WRITE  = function(arg, text){ //returns the modified files
+  if(arg.trim() !== ""){
+    var res = [];
+    arg = arg.split(" ");
+    for(var i = 0; i < arg.length; i++){
+      var path = _prompted_helper.resolve(this.path, arg[i]);
+      var reg = this.regexp(path);
+      for(var j = 0; j < this.data.length; j++){
+        if(reg.test(this.data[j].path) === true && path.split("/").length === this.data[j].path.split("/").length && this.data[j].folder === false){
+          //must be a file
+          this.data[j].contents = text;
+          res.push(this.data[j]);
+        }
+      }
+
+    }
+    return res;
+  }
+  else{
+    throw "no file specified"
+  }
+}
+
+_prompted.prototype.READ = function(arg){
+  var ret = [];
+  var res = this.FIND(arg);
+  for(var i = 0; i < res.length; i++){
+    if(res[i].folder === false){
+      ret.push(res[i]);
+    }
+  }
+  return ret;
+}
+
+_prompted.prototype.cat = function(arg){
+  try{
+    var res = this.FIND(arg);
+    for(var i = 0; i < res.length; i++){
+      if(res[i].folder === false){
+        this.print(_prompted_helper.escape(res[i].contents));
+      }
+    }
+  } catch(e){
+    this.print("cat: " + e);
   }
 }
 _prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
@@ -582,51 +652,44 @@ _prompted.prototype.nano = function(arg){
 }
 
 _prompted.prototype.ls = function(arg){
-  if(arg === ""){
-    //list all in this.path
-    var path = this.path + "/*"
-    if(this.path === "/"){path="/*"}
-    var files = [];
-    var reg = this.regexp(path);
-    for(var i = 0; i < this.data.length; i++){
-      if(reg.test(this.data[i].path) === true && path.split("/").length === this.data[i].path.split("/").length){
-        files.push(this.data[i]);
-      }
-    }
-    this.listFiles(files, false);
+  var files = [];
+  if(arg.trim() === ""){
+    arg = "." //just this dir
   }
-  else{
-    arg = arg.split(" ");
-    for(var i = 0; i < arg.length; i++){
-      var path = _prompted_helper.resolve(this.path, arg[i]);
-      if(path !== "/"){
-        var reg = this.regexp(path);
-        for(var j = 0; j < this.data.length; j++){
-          if(reg.test(this.data[j].path) === true && path.split("/").length === this.data[j].path.split("/").length && this.data[j].folder === true){
-            //found a folder that matches
-            var title = this.data[j].name;
-            var _path = this.data[j].path + "/*";
-            var reg2 = this.regexp(_path);
-            var files = [];
-            for(var k = 0; k < this.data.length; k++){
-              if(reg2.test(this.data[k].path) === true && _path.split("/").length === this.data[k].path.split("/").length){
-                files.push(this.data[k]);
-              }
-            }
-            this.listFiles(files, title);
-          }
-        }
-      }
-      else{
-        var reg = this.regexp("/*");
-        var files = [];
-        for(var j = 0; j < this.data.length; j++){
-          if(reg.test(this.data[j].path) === true && "/".split("/").length === this.data[j].path.split("/").length){
-            files.push(this.data[j]);
-          }
-        }
-        this.listFiles(files, false);
-      }
+  arg = arg.split(" ");
+  for(var i = 0; i < arg.length; i++){
+    var path = _prompted_helper.resolve(this.path, arg[i]);
+    if(path === "/"){
+      path = "/*"
+    }
+    else{
+      path += "/*"
+    }
+    var res = this.FIND(path);
+    files = files.concat(res);
+  }
+  //ok, got all of the files
+  //now, organize by parents
+  files = files.sort(_prompted_helper.parentSort);
+  var sorted = [];
+  var curr_parent = "";
+  for(var i = 0; i < files.length; i++){
+    if(files[i].parent !== curr_parent){
+      curr_parent = files[i].parent;
+      sorted.push([]);
+    }
+
+    if(files[i].parent === curr_parent){
+      sorted[sorted.length - 1].push(files[i]);
+    }
+  }
+
+  for(var i = 0; i < sorted.length; i++){
+    if(sorted.length === 1){
+      this.listFiles(sorted[i], null);
+    }
+    else{
+      this.listFiles(sorted[i], sorted[i][0].parent);
     }
   }
 };
@@ -634,7 +697,7 @@ _prompted.prototype.ls = function(arg){
 _prompted.prototype.listFiles = function(files, title){ //TODO: remove this, put directly in loop
   files = files.sort(_prompted_helper.nameSort);
   var html = "<ul class=\"flex-list\">";
-  if(title !== false){this.print(title + ":")}
+  if(title !== null){this.print(title + ":")}
   for(var i = 0; i < files.length; i++){
     if(files[i].folder === true){
       html += "<li class=\"prompted-accent-2\">" + files[i].name + "</li>";
@@ -725,6 +788,13 @@ _prompted_helper.nameSort = function(a,b){
     if(a.name > b.name) return 1;
     return 0;
 }
+
+_prompted_helper.parentSort = function(a,b){
+    if(a.parent < b.parent) return -1;
+    if(a.parent > b.parent) return 1;
+    return 0;
+}
+
 
 _prompted_helper.removeTags = function(text){
   var ret = [];
