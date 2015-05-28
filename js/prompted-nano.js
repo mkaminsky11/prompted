@@ -17,20 +17,32 @@ _prompted.prototype.nano = function(arg){
       if(index !== null){
         var color = _prompted_helper.getStyle(this.elem, "color");
         var background_color = _prompted_helper.getStyle(this.elem, "background-color");
-
         var contents = _prompted_helper.escape(this.data[index].contents);
-
         var bottom = "<div><h6><span>[Read " + contents.split("\n").length + " lines]</span></h6>";
-
         var html = "<div class=\"prompted-nano\" style=\"color:" + color + ";background-color:" + background_color + "\"><textarea style=\"color:"+color+"\" spellcheck=\"false\">"+contents+"</textarea>"+bottom+"</div>";
         this.elem.innerHTML += html;
 
         this.nano.elem = this.elem.querySelector(".prompted-nano");
         this.nano.input = this.elem.querySelector(".prompted-nano textarea");
+        this.nano.edited = false;
         this.nano.input.addEventListener("keydown", function(e){
           e.which = e.which || e.keyCode;
-          if(e.which == 88 && e.ctrlKey) {
+          if(e.which == 88 && e.ctrlKey) { //Ctrl-X: quit Ctrl-O: save
             //this.nano.quit(); eventually...
+            if(this.nano.edited === false){
+              //no edited
+              this.nanoQuit();
+            }
+            else{
+              //edited
+            }
+          }
+          else if(e.which == 79 && e.ctrlKey){
+            //this.nano.save();
+          }
+          else if(e.ctrlKey === false){
+            //something else to type
+            this.nano.edited = true;
           }
         }.bind(this), false);
       }
@@ -43,3 +55,7 @@ _prompted.prototype.nano = function(arg){
     this.print("nano: no file specified");
   }
 }
+
+_prompted.prototype.nanoQuit = function(){
+  this.nano.elem.remove();
+};
