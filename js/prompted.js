@@ -10,79 +10,59 @@
 * JUST FOR INIT
 */
 
-function prompted(elems, options){
-  //if elems is an array
-  if(elems.constructor === Array){
-    var ret = [];
-    for(var i = 0; i < elems.length; i++){
-      //is this element a dom element?
-      var elem = elems[i];
-      if(_prompted_helper.isNode(elem) || _prompted_helper.isElement(elem)){
-        ret.push(new _prompted(elem, options));
-      }
-      else{
-        throw "Must be an array of dom elements or a dom element";
-      }
-    }
-    return ret;
+function prompted(){
+	var elem = null;
+	var options = null;
+	  if(arguments.length === 2){
+  	options = arguments[1];
   }
-  else if(_prompted_helper.isNode(elems) || _prompted_helper.isElement(elems)){
-    //just a single dom element
-    var elem = elems;
-    return [new _prompted(elem, options)];
+	
+  if(arguments.length === 2 || arguments.length === 1){
+  	elem = arguments[0];
+  	if(_prompted_helper.isNode(elem) || _prompted_helper.isElement(elem)){
+        //prompt
+			  if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
+			  if(_prompted_helper.exists(options.path)){this.path = options.path}
+			  if(_prompted_helper.exists(options.beforeInput)){this.beforeInput = options.beforeInput}
+			  if(_prompted_helper.exists(options.afterInput)){this.afterInput = options.afterInput}
+			  if(_prompted_helper.exists(options.disable)){this.disable = options.disable}
+			  if(_prompted_helper.exists(options.data)){this.readTree(options.data,this.path)}
+			  if(_prompted_helper.exists(options.introText)){this.introText = options.introText}
+			  if(_prompted_helper.exists(options.disabledCommands)){this.disabledCommands = options.disabledCommands}
+			  if(_prompted_helper.exists(options.theme)){this.theme = options.theme}
+			
+			  var main = document.createElement("DIV");
+			  main.className = "prompted prompted-s-" + this.theme;
+			  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input spellcheck=\"false\" type=\"text\" class=\"prompted-input\"></div>";
+			  elem.appendChild(main);
+			
+			  this.elem = main;
+			  this.bindInput();
+			  this.print(this.introText);
+    } 
+    else{
+    	throw "a single dom element must be passed"
+    }
   }
   else{
-    //other
-    throw "Must be an array of dom elements or a dom element";
+  	throw "must have 1 or 2 arguments";
   }
 }
 
-
-
-
-
-
-/*
-* THIS IS THE GOOD STUFF
-*/
-
-function _prompted(elem, options){
-
-  //prompt
-  if(_prompted_helper.exists(options.prompt)){this.prompt = options.prompt}
-  if(_prompted_helper.exists(options.path)){this.path = options.path}
-  if(_prompted_helper.exists(options.beforeInput)){this.beforeInput = options.beforeInput}
-  if(_prompted_helper.exists(options.afterInput)){this.afterInput = options.afterInput}
-  if(_prompted_helper.exists(options.disable)){this.disable = options.disable}
-  if(_prompted_helper.exists(options.data)){this.readTree(options.data,this.path)}
-  if(_prompted_helper.exists(options.introText)){this.introText = options.introText}
-  if(_prompted_helper.exists(options.disabledCommands)){this.disabledCommands = options.disabledCommands}
-  if(_prompted_helper.exists(options.theme)){this.theme = options.theme}
-
-  var main = document.createElement("DIV");
-  main.className = "prompted prompted-s-" + this.theme;
-  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input spellcheck=\"false\" type=\"text\" class=\"prompted-input\"></div>";
-  elem.appendChild(main);
-
-  this.elem = main;
-  this.bindInput();
-  this.print(this.introText);
-}
-
-_prompted.prototype.prompt = "root@localhost";
-_prompted.prototype.beforeInput = function(e){};
-_prompted.prototype.afterInput = function(e){};
-_prompted.prototype.disable = false; //disable default output?
-_prompted.prototype.data = [];
-_prompted.prototype.path = "/";
-_prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
-_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help","nano"];
-_prompted.prototype.rawCommands = [];
-_prompted.prototype.commandHistory = [];
-_prompted.prototype.disabledCommands = [];
-_prompted.prototype.theme = "default";
-_prompted.prototype.historyIndex = 0;
-_prompted.prototype.introText = (function () {/*
+prompted.prototype.prompt = "root@localhost";
+prompted.prototype.beforeInput = function(e){};
+prompted.prototype.afterInput = function(e){};
+prompted.prototype.disable = false; //disable default output?
+prompted.prototype.data = [];
+prompted.prototype.path = "/";
+prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
+prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help","nano"];
+prompted.prototype.rawCommands = [];
+prompted.prototype.commandHistory = [];
+prompted.prototype.disabledCommands = [];
+prompted.prototype.theme = "default";
+prompted.prototype.historyIndex = 0;
+prompted.prototype.introText = (function () {/*
 <h2 style="margin:0">PROMPTED</h2>
 
 A Linux terminal emulator written in Javascript.
@@ -90,7 +70,7 @@ Support the project by starring us <a href='https://github.com/mkaminsky11/promp
 
 Type "help" to see all of the available commands*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.bindInput = function(){
+prompted.prototype.bindInput = function(){
   var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
   inp.focus();
   inp.addEventListener("keydown", function(e){
@@ -171,7 +151,7 @@ _prompted.prototype.bindInput = function(){
   }.bind(this), false);
 }
 
-_prompted.prototype.resetInput = function(){
+prompted.prototype.resetInput = function(){
   var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
   var val = inp.value;
 
@@ -184,7 +164,7 @@ _prompted.prototype.resetInput = function(){
   this.elem.insertBefore(newNode, last_row);
 };
 
-_prompted.prototype.autoComplete = function(path){
+prompted.prototype.autoComplete = function(path){
   path = path + "*";
   path = _prompted_helper.resolve(this.path, path);
   var reg = this.regexp(path);
@@ -197,7 +177,7 @@ _prompted.prototype.autoComplete = function(path){
   return paths;
 };
 
-_prompted.prototype.eval = function(val){
+prompted.prototype.eval = function(val){
   val = val.trim();
   if(val.trim() !== ""){
     var command = val.split(" ")[0];
@@ -234,22 +214,22 @@ _prompted.prototype.eval = function(val){
   }
 }
 
-_prompted.prototype.hideInput = function(){
+prompted.prototype.hideInput = function(){
   _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display = "none";
 };
-_prompted.prototype.showInput = function(){
+prompted.prototype.showInput = function(){
   _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display = "block";
 };
-_prompted.prototype.inputHidden = function(){
+prompted.prototype.inputHidden = function(){
   return _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0].style.display === "none";
 };
 
-_prompted.prototype.regexp = function(path){
+prompted.prototype.regexp = function(path){
   return new RegExp("^" + path.split("*").join("(.*)").split("/").join("\/") + "$");
 };
 
 
-_prompted.prototype.print = function(text){
+prompted.prototype.print = function(text){
   //display inline text!
   var newNode = document.createElement("div");
   newNode.className = "prompted-row";
@@ -257,7 +237,7 @@ _prompted.prototype.print = function(text){
   var last_row = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row")).reverse()[0];
   this.elem.insertBefore(newNode, last_row);
 };
-_prompted.prototype.insert = function(html){
+prompted.prototype.insert = function(html){
   var newNode = document.createElement("div");
   newNode.className = "prompted-row";
   newNode.innerHTML = html;
@@ -266,7 +246,7 @@ _prompted.prototype.insert = function(html){
 };
 
 
-_prompted.prototype.canCd = function(path){
+prompted.prototype.canCd = function(path){
   if(path === "/"){return true}
   for(var i = 0; i < this.data.length; i++){
     if(this.data[i].path === path){
@@ -279,7 +259,7 @@ _prompted.prototype.canCd = function(path){
   return false;
 };
 
-_prompted.prototype.exists = function(path){
+prompted.prototype.exists = function(path){
   if(path.indexOf("*") === -1){
     for(var i = 0; i < this.data.length; i++){
         if(this.data[i].path === path){
@@ -299,7 +279,7 @@ _prompted.prototype.exists = function(path){
   }
 };
 
-_prompted.prototype.readTree = function(tree, path){
+prompted.prototype.readTree = function(tree, path){
   for(var i = 0; i < tree.length; i++){
 
     var to_push = {};
@@ -322,7 +302,7 @@ _prompted.prototype.readTree = function(tree, path){
   }
 };
 
-_prompted.prototype.createCommand = function(command_name, func, raw){
+prompted.prototype.createCommand = function(command_name, func, raw){
   if(raw === true){ //with tags and everything
     if(this.rawCommands.indexOf(command_name) === -1){
       this.rawCommands.push(command_name);
@@ -342,22 +322,22 @@ _prompted.prototype.createCommand = function(command_name, func, raw){
   }
   else{this[command_name] = func;}
 }
-_prompted.prototype.disableCommand = function(command){
+prompted.prototype.disableCommand = function(command){
   if(this.disabledCommands.indexOf(command) === -1){
     this.disabledCommands.push(command);
   }
 };
-_prompted.prototype.enableCommand = function(command){
+prompted.prototype.enableCommand = function(command){
   if(this.disabledCommands.indexOf(command) !== -1){
     this.disabledCommands.splice(this.disabledCommands.indexOf(command),1);
   }
 };
-_prompted.prototype.commandDisabled = function(command){
+prompted.prototype.commandDisabled = function(command){
   return (this.disabledCommands.indexOf(command) !== -1)
 };
 
 
-_prompted.prototype.setTheme = function(theme){
+prompted.prototype.setTheme = function(theme){
   this.elem.classList.remove("prompted-s-" + this.theme);
   this.theme = theme;
   this.elem.classList.add("prompted-s-" + theme);
@@ -367,15 +347,15 @@ _prompted.prototype.setTheme = function(theme){
 COMMANDS
 */
 
-_prompted.prototype.help = function(arg){
+prompted.prototype.help = function(arg){
   this.print(this.commands.join("\n"));
 }
 
-_prompted.prototype.history = function(arg){
+prompted.prototype.history = function(arg){
   this.print(this.commandHistory.join("\n"));
 };
 
-_prompted.prototype.mv = function(arg){
+prompted.prototype.mv = function(arg){
   arg = arg.split(" ");
   if(arg.length === 2){
     var to_be_moved = _prompted_helper.resolve(this.path, arg[0]);
@@ -444,10 +424,10 @@ _prompted.prototype.mv = function(arg){
 };
 
 
-_prompted.prototype.rm = function(arg){
+prompted.prototype.rm = function(arg){
 	this.REMOVE(arg);
 }
-_prompted.prototype.REMOVE = function(arg){
+prompted.prototype.REMOVE = function(arg){
   if(arg.trim() !== ""){
     var res = [];
 		arg = arg.split(" ");
@@ -469,29 +449,29 @@ _prompted.prototype.REMOVE = function(arg){
     return res;
 	}
 }
-_prompted.prototype.rm.help = (function () {/*usage: rm [-f | -i] [-dPRrvW] file ...
+prompted.prototype.rm.help = (function () {/*usage: rm [-f | -i] [-dPRrvW] file ...
        unlink file*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.touch = function(arg){
+prompted.prototype.touch = function(arg){
   try{
     this.CREATE(arg, false);
   } catch(e){
     this.print("touch: " + e);
   }
 };
-_prompted.prototype.touch.help = (function () {/*usage:
+prompted.prototype.touch.help = (function () {/*usage:
 touch [-A [-][[hh]mm]SS] [-acfhm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.mkdir = function(arg){
+prompted.prototype.mkdir = function(arg){
   try{
     this.CREATE(arg, true);
   } catch(e){
     this.print("mkdir: " + e);
   }
 };
-_prompted.prototype.mkdir.help = (function () {/*usage: mkdir [-pv] [-m mode] directory ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+prompted.prototype.mkdir.help = (function () {/*usage: mkdir [-pv] [-m mode] directory ...*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.CREATE = function(){ //TODO: rework!
+prompted.prototype.CREATE = function(){ //TODO: rework!
   var arg = null;
   var folder = null;
   var content = "";
@@ -564,17 +544,17 @@ _prompted.prototype.CREATE = function(){ //TODO: rework!
 };
 
 
-_prompted.prototype.pwd = function(arg){
+prompted.prototype.pwd = function(arg){
   this.print(this.path);
 };
 
 
-_prompted.prototype.echo = function(text){
+prompted.prototype.echo = function(text){
   this.print(_prompted_helper.escape(text));
 };
 
 
-_prompted.prototype.clear = function(arg){
+prompted.prototype.clear = function(arg){
   //remove all rows but the last
   var rows = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-row"));
   for(var i = 0; i < (rows.length - 1); i++){
@@ -582,7 +562,7 @@ _prompted.prototype.clear = function(arg){
   }
 };
 
-_prompted.prototype.FIND = function(arg){
+prompted.prototype.FIND = function(arg){
   if(arg.trim() !== ""){
     var res = [];
     arg = arg.split(" ");
@@ -603,7 +583,7 @@ _prompted.prototype.FIND = function(arg){
   }
 }
 
-_prompted.prototype.WRITE  = function(arg, text){ //returns the modified files
+prompted.prototype.WRITE  = function(arg, text){ //returns the modified files
   if(arg.trim() !== ""){
     var res = [];
     arg = arg.split(" ");
@@ -626,7 +606,7 @@ _prompted.prototype.WRITE  = function(arg, text){ //returns the modified files
   }
 }
 
-_prompted.prototype.READ = function(arg){
+prompted.prototype.READ = function(arg){
   var ret = [];
   var res = this.FIND(arg);
   for(var i = 0; i < res.length; i++){
@@ -637,7 +617,7 @@ _prompted.prototype.READ = function(arg){
   return ret;
 }
 
-_prompted.prototype.cat = function(arg){
+prompted.prototype.cat = function(arg){
   try{
     var res = this.FIND(arg);
     for(var i = 0; i < res.length; i++){
@@ -649,13 +629,13 @@ _prompted.prototype.cat = function(arg){
     this.print("cat: " + e);
   }
 }
-_prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+prompted.prototype.cat.help = (function () {/*usage: cat [-benstuv] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.nano = function(arg){
+prompted.prototype.nano = function(arg){
   this.print("nano: load prompted-nano.js to use");
 }
 
-_prompted.prototype.ls = function(arg){
+prompted.prototype.ls = function(arg){
   var files = [];
   if(arg.trim() === ""){
     arg = "." //just this dir
@@ -698,7 +678,7 @@ _prompted.prototype.ls = function(arg){
   }
 };
 
-_prompted.prototype.listFiles = function(files, title){ //TODO: remove this, put directly in loop
+prompted.prototype.listFiles = function(files, title){ //TODO: remove this, put directly in loop
   files = files.sort(_prompted_helper.nameSort);
   var html = "<ul class=\"flex-list\">";
   if(title !== null){this.print(title + ":")}
@@ -718,9 +698,9 @@ _prompted.prototype.listFiles = function(files, title){ //TODO: remove this, put
   this.insert(html);
 };
 
-_prompted.prototype.ls.help = (function () {/*usage: ls [-ABCFGHLOPRSTUWabcdefghiklmnopqrstuwx1] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+prompted.prototype.ls.help = (function () {/*usage: ls [-ABCFGHLOPRSTUWabcdefghiklmnopqrstuwx1] [file ...]*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-_prompted.prototype.cd = function(arg){
+prompted.prototype.cd = function(arg){
   //resolve everything along the way
   cd = arg.split("/");
   if(cd[0] === ""){cd[0]="/"}
