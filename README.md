@@ -1,6 +1,13 @@
 # PROMPTED
 
-A Linux terminal emulator written in Javascript
+### [Demo](http://mkaminsky11.github.io/prompted)
+### [Documentation](https://github.com/mkaminsky11/prompted/wiki)
+
+A Linux terminal emulator written in vanilla Javascript
+
+```javascript
+var terminal = new prompted(document.getElementById("main"));
+```
 
 ## Capabilities
 ### What it can do
@@ -14,17 +21,3 @@ A Linux terminal emulator written in Javascript
 + exactly replicate a Linux terminal
 
 It's written in Javascript, so just calm down. It's not perfect.
-
-## Basics
-
-## Data
-
-## Commands
-
-## Custom Commands
-
-## Functions
-
-## Helper Functions
-
-## How it Works
