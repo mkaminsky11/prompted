@@ -1,7 +1,7 @@
-_prompted.prototype.nanoCommands = [88,79];
-_prompted.prototype.nanoCommandDesc = ["Exit","WriteOut"];
-_prompted.prototype.nanoPath = null;
-_prompted.prototype.nano = function(arg){
+prompted.prototype.nanoCommands = [88,79];
+prompted.prototype.nanoCommandDesc = ["Exit","WriteOut"];
+prompted.prototype.nanoPath = null;
+prompted.prototype.nano = function(arg){
   if(arg !== ""){
     arg = arg.split(" ");
     if(arg.length > 1){
@@ -64,7 +64,7 @@ _prompted.prototype.nano = function(arg){
   }
 }
 
-_prompted.prototype.nanoCtrlX = function(){
+prompted.prototype.nanoCtrlX = function(){
   //this.nano.quit(); eventually...
   if(this.nano.edited === false){
     //no edited
@@ -75,11 +75,11 @@ _prompted.prototype.nanoCtrlX = function(){
   }
 };
 
-_prompted.prototype.nanoCtrlO = function(){
+prompted.prototype.nanoCtrlO = function(){
 
 };
 
-_prompted.prototype.nanoQuit = function(){
+prompted.prototype.nanoQuit = function(){
   this.nanoPath = null;
   this.nano.edited = false;
   this.nano.elem.remove();
