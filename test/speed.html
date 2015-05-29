@@ -30,7 +30,7 @@
     <script src="../js/prompted.js"></script>
     <script>
       var start, end;
-      var terminal = prompted(document.getElementById("main"),{
+      var terminal = new prompted(document.getElementById("main"),{
         beforeInput: function(val){
           start = +new Date();
         },
