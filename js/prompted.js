@@ -65,7 +65,33 @@ function _prompted(elem, options){
   elem.appendChild(main);
 
   this.elem = main;
-  var inp = _prompted_helper.toArray(main.getElementsByClassName("prompted-input")).reverse()[0];
+  this.bindInput();
+  this.print(this.introText);
+}
+
+_prompted.prototype.prompt = "root@localhost";
+_prompted.prototype.beforeInput = function(e){};
+_prompted.prototype.afterInput = function(e){};
+_prompted.prototype.disable = false; //disable default output?
+_prompted.prototype.data = [];
+_prompted.prototype.path = "/";
+_prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
+_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help","nano"];
+_prompted.prototype.rawCommands = [];
+_prompted.prototype.commandHistory = [];
+_prompted.prototype.disabledCommands = [];
+_prompted.prototype.theme = "default";
+_prompted.prototype.historyIndex = 0;
+_prompted.prototype.introText = (function () {/*
+<h2 style="margin:0">PROMPTED</h2>
+
+A Linux terminal emulator written in Javascript.
+Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>
+
+Type "help" to see all of the available commands*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+
+_prompted.prototype.bindInput = function(){
+  var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];
   inp.focus();
   inp.addEventListener("keydown", function(e){
     e.which = e.which || e.keyCode;
@@ -143,29 +169,7 @@ function _prompted(elem, options){
       e.preventDefault();
     }
   }.bind(this), false);
-  this.print(this.introText);
 }
-
-_prompted.prototype.prompt = "root@localhost";
-_prompted.prototype.beforeInput = function(e){};
-_prompted.prototype.afterInput = function(e){};
-_prompted.prototype.disable = false; //disable default output?
-_prompted.prototype.data = [];
-_prompted.prototype.path = "/";
-_prompted.prototype.specialExt = ["png","jpeg","JPEG","tiff","gif","mp3","mp4","mov","svg"];
-_prompted.prototype.commands = ["mv","rm","touch","mkdir","pwd","echo","clear","cat","ls","cd","history","help","nano"];
-_prompted.prototype.rawCommands = [];
-_prompted.prototype.commandHistory = [];
-_prompted.prototype.disabledCommands = [];
-_prompted.prototype.theme = "default";
-_prompted.prototype.historyIndex = 0;
-_prompted.prototype.introText = (function () {/*
-<h2 style="margin:0">PROMPTED</h2>
-
-A Linux terminal emulator written in Javascript.
-Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>
-
-Type "help" to see all of the available commands*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
 _prompted.prototype.resetInput = function(){
   var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];

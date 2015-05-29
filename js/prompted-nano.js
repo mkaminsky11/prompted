@@ -1,3 +1,6 @@
+_prompted.prototype.nanoCommands = [88,79];
+_prompted.prototype.nanoCommandDesc = ["Exit","WriteOut"];
+_prompted.prototype.nanoPath = null;
 _prompted.prototype.nano = function(arg){
   if(arg !== ""){
     arg = arg.split(" ");
@@ -6,6 +9,7 @@ _prompted.prototype.nano = function(arg){
     }
     else{
       var path = _prompted_helper.resolve(this.path, arg[0]);
+      this.nanoPath = path;
       var reg = this.regexp(path);
       var index = null;
       for(var i = 0; i < this.data.length; i++){
@@ -14,11 +18,20 @@ _prompted.prototype.nano = function(arg){
         }
       }
 
+      if(index === null){
+        //um...have to create it?
+      }
+
       if(index !== null){
         var color = _prompted_helper.getStyle(this.elem, "color");
         var background_color = _prompted_helper.getStyle(this.elem, "background-color");
         var contents = _prompted_helper.escape(this.data[index].contents);
         var bottom = "<div><h6><span>[Read " + contents.split("\n").length + " lines]</span></h6>";
+        bottom += "<div class=\"prompted-nano-commands\">";
+        for(var i = 0; i < this.nanoCommands.length; i++){
+          bottom += "<h5><span>^" + String.fromCharCode(this.nanoCommands[i]).toUpperCase() + "</span>" + this.nanoCommandDesc[i] + "</h5>"
+        }
+        bottom += "</div>";
         var html = "<div class=\"prompted-nano\" style=\"color:" + color + ";background-color:" + background_color + "\"><textarea style=\"color:"+color+"\" spellcheck=\"false\">"+contents+"</textarea>"+bottom+"</div>";
         this.elem.innerHTML += html;
 
@@ -27,20 +40,15 @@ _prompted.prototype.nano = function(arg){
         this.nano.edited = false;
         this.nano.input.addEventListener("keydown", function(e){
           e.which = e.which || e.keyCode;
-          if(e.which == 88 && e.ctrlKey) { //Ctrl-X: quit Ctrl-O: save
-            //this.nano.quit(); eventually...
-            if(this.nano.edited === false){
-              //no edited
-              this.nanoQuit();
-            }
-            else{
-              //edited
+          if(e.ctrlKey) {
+            if(this.nanoCommands.indexOf(e.which) !== -1){
+              var commandName = "nanoCtrl" + String.fromCharCode(e.which).toUpperCase();
+              if(_prompted_helper.exists(this[commandName])){
+                this[commandName]();
+              }
             }
           }
-          else if(e.which == 79 && e.ctrlKey){
-            //this.nano.save();
-          }
-          else if(e.ctrlKey === false){
+          else{
             //something else to type
             this.nano.edited = true;
           }
@@ -56,6 +64,25 @@ _prompted.prototype.nano = function(arg){
   }
 }
 
+_prompted.prototype.nanoCtrlX = function(){
+  //this.nano.quit(); eventually...
+  if(this.nano.edited === false){
+    //no edited
+    this.nanoQuit();
+  }
+  else{
+    //edited
+  }
+};
+
+_prompted.prototype.nanoCtrlO = function(){
+
+};
+
 _prompted.prototype.nanoQuit = function(){
+  this.nanoPath = null;
+  this.nano.edited = false;
   this.nano.elem.remove();
+
+  this.bindInput();
 };
