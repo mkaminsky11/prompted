@@ -1,10 +1,11 @@
 //TODO: docs!
 //TODO: find (-iname, etc) <-- tags are iffy
+//search in path
 //TODO: cp
 //TODO: images and url
-//TODO: nano
 //TODO: functions to
 //rename (mv)
+//TODO: ask
 
 /*
 * JUST FOR INIT
@@ -16,7 +17,7 @@ function prompted(){
 	  if(arguments.length === 2){
   	options = arguments[1];
   }
-	
+
   if(arguments.length === 2 || arguments.length === 1){
   	elem = arguments[0];
   	if(_prompted_helper.isNode(elem) || _prompted_helper.isElement(elem)){
@@ -30,16 +31,16 @@ function prompted(){
 			  if(_prompted_helper.exists(options.introText)){this.introText = options.introText}
 			  if(_prompted_helper.exists(options.disabledCommands)){this.disabledCommands = options.disabledCommands}
 			  if(_prompted_helper.exists(options.theme)){this.theme = options.theme}
-			
+
 			  var main = document.createElement("DIV");
 			  main.className = "prompted prompted-s-" + this.theme;
 			  main.innerHTML = "<div class=\"prompted-row\"><span class=\"prompted-prompt\">"+"<span class=\"prompted-accent-1\">" + this.prompt + "</span>" + "<span class=\"prompted-accent-2\">" + this.path + "</span>" +"</span><input spellcheck=\"false\" type=\"text\" class=\"prompted-input\"></div>";
 			  elem.appendChild(main);
-			
+
 			  this.elem = main;
 			  this.bindInput();
 			  this.print(this.introText);
-    } 
+    }
     else{
     	throw "a single dom element must be passed"
     }
@@ -62,13 +63,14 @@ prompted.prototype.commandHistory = [];
 prompted.prototype.disabledCommands = [];
 prompted.prototype.theme = "default";
 prompted.prototype.historyIndex = 0;
-prompted.prototype.introText = (function () {/*
-<h2 style="margin:0">PROMPTED</h2>
-
-A Linux terminal emulator written in Javascript.
-Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>
-
-Type "help" to see all of the available commands*/}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+prompted.prototype.introText = [
+	"<h2 style=\"margin:0\">PROMPTED</h2>",
+	"",
+	"A Linux terminal emulator written in Javascript.",
+	"Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>",
+	"",
+	"Type \"help\" to see all of the available commands"
+].join("\n");
 
 prompted.prototype.bindInput = function(){
   var inp = _prompted_helper.toArray(this.elem.getElementsByClassName("prompted-input")).reverse()[0];

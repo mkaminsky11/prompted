@@ -62,3 +62,8 @@
   background-color: white;
   color: rgb(13, 13, 13);
 }
+
+.prompted-s-default .prompted-nano input{
+  font-size: 13px;
+  font-family: "Inconsolata";
+}

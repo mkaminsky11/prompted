@@ -49,16 +49,34 @@
   flex-wrap: wrap;
 }
 
-.prompted-nano-commands h5{
+.prompted-nano-commands h5, .prompted-nano-input h5{
   margin: 0;
   position: relative;
   display: inline-block;
   flex: 0 0 24%;
   font-size: 13px;
   padding: 5px;
-  margin-bottom: -1px;
+  padding-left: 0px;
 }
 
-.prompted-nano-commands span{
+.prompted-nano-commands span, .prompted-nano-input span{
   margin-right: 5px;
+}
+
+.InputAddon{
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.prompted-nano-input .InputAddonItem{
+
+}
+
+.prompted-nano-input .InputAddonField{
+  flex: 1;
+  outline: none !important;
+  background-color: white;
+  border: none;
 }
