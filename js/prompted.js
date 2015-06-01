@@ -6,6 +6,7 @@
 //TODO: functions to
 //rename (mv)
 //TODO: ask
+//TODO: add functions to nano
 
 /*
 * JUST FOR INIT
