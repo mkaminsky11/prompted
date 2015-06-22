@@ -70,6 +70,8 @@ prompted.prototype.introText = [
 	"A Linux terminal emulator written in Javascript.",
 	"Support the project by starring us <a href='https://github.com/mkaminsky11/prompted'>here</a>",
 	"",
+  "<b>NOTE: still not done</b>",
+  "",
 	"Type \"help\" to see all of the available commands"
 ].join("\n");
 
