@@ -359,6 +359,10 @@ prompted.prototype.history = function(arg){
 };
 
 prompted.prototype.mv = function(arg){
+	this.RENAME(arg);
+}
+
+prompted.prototype.RENAME = function(arg){
   arg = arg.split(" ");
   if(arg.length === 2){
     var to_be_moved = _prompted_helper.resolve(this.path, arg[0]);

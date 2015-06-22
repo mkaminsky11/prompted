@@ -158,3 +158,20 @@ prompted.prototype.nanoBind = function(){
     this.nano.input.focus();
   }.bind(this), false);
 }
+
+prompted.prototype.nanoText = function(){
+  return this.nano.input.value;
+};
+
+prompted.prototype.nanoCommandExists = function(key){
+  return this.nanoCommands.indexOf(key) !== -1
+};
+
+prompted.prototype.nanoCreateCommand = function(key, desc, callback){
+  if(this.nanoCommandExists(key) === false){
+    
+  }
+  else{
+    throw "Command already exists";
+  }
+};
